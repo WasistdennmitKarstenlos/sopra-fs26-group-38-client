@@ -7,7 +7,7 @@ export default function Home() {
     <div className={styles.page}>
       <main className={styles.main}>
         <h1>Group 38</h1>
-        <p>Welcome to our SoPra client.</p>
+        <p>Welcome to our Sopra client.</p>
       </main>
     </div>
   );
