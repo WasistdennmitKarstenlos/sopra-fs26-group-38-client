@@ -12,7 +12,7 @@ export class ApiService {
       "Access-Control-Allow-Origin": "*",
     };
   }
-//Test commit client comment
+//Test commit client
   /**
    * Helper function to check the response, parse JSON,
    * and throw an error if the response is not OK.
