@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Card, Empty, message, Spin, Table } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { Trip } from "@/types/trip";
 import { User } from "@/types/user";
 import styles from "@/styles/page.module.css";

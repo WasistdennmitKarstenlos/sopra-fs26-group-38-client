@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button, Form, Input, message, Spin } from "antd";
 import { useApi } from "@/hooks/useApi";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { Trip } from "@/types/trip";
 import { User } from "@/types/user";
 import styles from "@/styles/page.module.css";
