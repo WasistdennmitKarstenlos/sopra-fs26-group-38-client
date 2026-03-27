@@ -2,12 +2,11 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Empty, message, Spin, Table } from "antd";
+import { Button, Card, message, Spin } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { Trip } from "@/types/trip";
-import { User } from "@/types/user";
 import styles from "@/styles/page.module.css";
 
 export default function TripRoom() {
@@ -15,26 +14,22 @@ export default function TripRoom() {
   const params = useParams();
   const roomCode = params.id as string;
   const apiService = useApi();
-  const { getItem } = useLocalStorage();
+  const { value: token } = useLocalStorage<string>("token", "");
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [participants, setParticipants] = useState<User[]>([]);
 
   // Check if user is logged in
   useEffect(() => {
-    const storedUser = getItem("user");
-    if (!storedUser) {
+    if (!token) {
       message.error("Please log in first");
       router.push("/login");
       return;
     }
-    setUser(storedUser);
-  }, [getItem, router]);
+  }, [token, router]);
 
   // Fetch trip details
   useEffect(() => {
-    if (!user || !roomCode) return;
+    if (!token || !roomCode) return;
 
     const fetchTrip = async () => {
       try {
@@ -57,7 +52,7 @@ export default function TripRoom() {
     };
 
     fetchTrip();
-  }, [user, roomCode, apiService, router]);
+  }, [token, roomCode, apiService, router]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {
@@ -81,8 +76,6 @@ export default function TripRoom() {
       </div>
     );
   }
-
-  const isHost = user?.id === trip.hostId;
 
   return (
     <div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
@@ -115,11 +108,6 @@ export default function TripRoom() {
               ? new Date(trip.creationDate).toLocaleDateString()
               : "N/A"}
           </p>
-          {isHost && (
-            <p style={{ color: "#22426b", fontWeight: "bold" }}>
-              You are the host of this trip
-            </p>
-          )}
         </div>
 
         {trip.status === "ACTIVE" && (
@@ -127,37 +115,15 @@ export default function TripRoom() {
             <Button type="primary" style={{ marginRight: 8 }} disabled>
               Add Destination (Coming Soon)
             </Button>
-            {isHost && (
-              <Button type="default" disabled>
-                Final Evaluation (Coming Soon)
-              </Button>
-            )}
+            <Button type="default" disabled>
+              Final Evaluation (Coming Soon)
+            </Button>
           </div>
         )}
       </Card>
 
       <Card title="Participants" style={{ marginBottom: 24 }}>
-        {participants.length === 0 ? (
-          <Empty description="No participants yet" />
-        ) : (
-          <Table
-            dataSource={participants}
-            columns={[
-              {
-                title: "Name",
-                dataIndex: "name",
-                key: "name",
-              },
-              {
-                title: "Username",
-                dataIndex: "username",
-                key: "username",
-              },
-            ]}
-            pagination={false}
-            rowKey={(record) => record.id || ""}
-          />
-        )}
+        <p>Participant features coming soon.</p>
       </Card>
     </div>
   );

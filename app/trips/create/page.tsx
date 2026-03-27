@@ -6,32 +6,28 @@ import { Button, Form, Input, message, Spin } from "antd";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { Trip } from "@/types/trip";
-import { User } from "@/types/user";
 import styles from "@/styles/page.module.css";
 
 export default function CreateTrip() {
   const router = useRouter();
   const apiService = useApi();
-  const { getItem } = useLocalStorage();
-  const [form] = Form.useForm();
+  const { value: token } = useLocalStorage<string>("token", "");
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
 
   // Check if user is logged in
   useEffect(() => {
-    const storedUser = getItem("user");
-    if (!storedUser) {
+    if (!token) {
       message.error("Please log in first");
       router.push("/login");
       return;
     }
-    setUser(storedUser);
-  }, [getItem, router]);
+  }, [token, router]);
 
   const onFinish = useCallback(
     async (values: { tripName: string }) => {
-      if (!user || !user.id) {
-        message.error("User not authenticated");
+      if (!token) {
+        message.error("Not authenticated. Please log in.");
+        router.push("/login");
         return;
       }
 
@@ -63,10 +59,10 @@ export default function CreateTrip() {
         setLoading(false);
       }
     },
-    [user, apiService, router]
+    [token, apiService, router]
   );
 
-  if (!user) {
+  if (!token) {
     return (
       <div className={styles.center}>
         <Spin size="large" tip="Loading..." />
@@ -79,7 +75,6 @@ export default function CreateTrip() {
       <div style={{ width: "100%", maxWidth: 400 }}>
         <h1 style={{ textAlign: "center", marginBottom: 30 }}>Create a New Trip</h1>
         <Form
-          form={form}
           layout="vertical"
           onFinish={onFinish}
           autoComplete="off"
