@@ -77,6 +77,9 @@ const Login: React.FC = () => {
             Login
           </Button>
         </Form.Item>
+        < Button type="link" onClick={() => router.push("/register")} className ="register-button">
+          Don&apos;t have an account? Click here to register
+        </Button>
       </Form>
     </div>
   );
