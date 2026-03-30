@@ -53,18 +53,19 @@ TA meeting slot: March 30, 2026 (08:00-10:00)
 
 TA meeting slot: April 13, 2026 (08:00-10:00)
 
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student (GitHub)**              | **Student Name**      | **Date**      | **Link to Commit** | **Description** | **Relevance** |
+| ----------------------------------| ----------------------| --------------| ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]**                | Ajay Sathish Shenoy   | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]**                  | Arjun Roy             | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]**                       | Joel Dickey           | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]**    | Lennart Robin Zirn    | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]**                  | Jean Leon Keim        | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
 
 ---
 
@@ -72,18 +73,19 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 
 TA meeting slot: April 20, 2026 (08:00-10:00)
 
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student (GitHub)**              | **Student Name**      | **Date**      | **Link to Commit** | **Description** | **Relevance** |
+| ----------------------------------| ----------------------| --------------| ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]**                | Ajay Sathish Shenoy   | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]**                  | Arjun Roy             | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]**                       | Joel Dickey           | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]**    | Lennart Robin Zirn    | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]**                  | Jean Leon Keim        | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
 
 ---
 
@@ -91,18 +93,19 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 
 TA meeting slot: May 4, 2026 (08:00-10:00)
 
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student (GitHub)**              | **Student Name**      | **Date**      | **Link to Commit** | **Description** | **Relevance** |
+| ----------------------------------| ----------------------| --------------| ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]**                | Ajay Sathish Shenoy   | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]**                  | Arjun Roy             | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]**                       | Joel Dickey           | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]**    | Lennart Robin Zirn    | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]**                  | Jean Leon Keim        | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
 
 ---
 
@@ -110,18 +113,19 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 TA meeting slot: May 11, 2026 (08:00-10:00)
 
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student (GitHub)**              | **Student Name**      | **Date**      | **Link to Commit** | **Description** | **Relevance** |
+| ----------------------------------| ----------------------| --------------| ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]**                | Ajay Sathish Shenoy   | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]**                  | Arjun Roy             | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]**                       | Joel Dickey           | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]**    | Lennart Robin Zirn    | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]**                  | Jean Leon Keim        | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
 
 ---
 
@@ -129,15 +133,16 @@ TA meeting slot: May 11, 2026 (08:00-10:00)
 
 TA meeting slot: May 18, 2026 (08:00-10:00)
 
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student (GitHub)**              | **Student Name**      | **Date**      | **Link to Commit** | **Description** | **Relevance** |
+| ----------------------------------| ----------------------| --------------| ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]**                | Ajay Sathish Shenoy   | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]**                  | Arjun Roy             | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]**                       | Joel Dickey           | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]**    | Lennart Robin Zirn    | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]**                  | Jean Leon Keim        | [date]        | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                                   |                       | [date]        | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
