@@ -52,6 +52,18 @@ a {
 .login-button {
   width: 100%;
 }
+/*Register container display specifications*/
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: rgb(41, 44, 59);
+}
+
+.register-button {
+  width: 100%;
+}
 
 .card-container {
   display: flex;
