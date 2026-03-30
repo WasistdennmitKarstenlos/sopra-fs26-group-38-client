@@ -37,11 +37,11 @@ const Login: React.FC = () => {
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
 
-      // Redirect to the dashboard on success
-      router.push("/users");
-    } catch (err) {
-      if (err instanceof Error) {
-        setErrorMsg(err.message);
+      // Navigate to the user overview
+      router.push("/dashboard");
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Something went wrong during the login:\n${error.message}`);
       } else {
         setErrorMsg("An unexpected error occurred. Please try again.");
       }
