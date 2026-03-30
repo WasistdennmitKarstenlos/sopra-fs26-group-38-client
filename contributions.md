@@ -42,6 +42,8 @@ reason).
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@sajayshenoy]** | 2026-03-27 | [f25aea4](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/f25aea4) | Task 1: Backend Trip Management API - Implement trip creation endpoint with validation (closes #52, #53, #54, #55, #56, #61) | Implements core backend logic for US-04: Trip entity, service, controller, DTOs, and tests for room code generation and trip creation with validation |
+|                    | 2026-03-27 | [304c9e8](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/304c9e8) | Task 2: Frontend Trip Creation UI - Implement trip creation flow (closes #16, #17, #18, #19, #45) | Implements frontend for US-04: Create trip form, trip room display, error handling, and navigation flow with full integration to backend |
 
 ---
 
