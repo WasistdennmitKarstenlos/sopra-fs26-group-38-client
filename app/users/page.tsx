@@ -120,10 +120,15 @@ const Dashboard: React.FC = () => {
                 style: { cursor: "pointer" },
               })}
             />
-            <Divider />
-            <Button onClick={handleLogout} type="primary">
-              Logout
-            </Button>
+            <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+              <Button
+                type="primary"
+                onClick={() => router.push("/trips/create")}
+              >
+                Create Trip
+              </Button>
+              <Button onClick={handleLogout}>Logout</Button>
+            </div>
           </>
         )}
       </Card>
