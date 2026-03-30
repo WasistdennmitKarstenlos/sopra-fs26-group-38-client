@@ -4,14 +4,30 @@ import { ApplicationError } from "@/types/error";
 export class ApiService {
   private baseURL: string;
   private defaultHeaders: HeadersInit;
+  private token?: string;
 
-  constructor() {
+  constructor(token?: string) {
     this.baseURL = getApiDomain();
+    this.token = token;
     this.defaultHeaders = {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
     };
   }
+
+  /**
+   * Get headers, automatically injecting the Bearer token if one is set.
+   */
+  private getHeaders(): HeadersInit {
+    const headers: Record<string, string> = {
+      ...(this.defaultHeaders as Record<string, string>),
+    };
+    if (this.token) {
+      headers["Authorization"] = `Bearer ${this.token}`;
+    }
+    return headers;
+  }
+
 //Test commit client
   /**
    * Helper function to check the response, parse JSON,
@@ -64,7 +80,7 @@ export class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "GET",
-      headers: this.defaultHeaders,
+      headers: this.getHeaders(),
     });
     return this.processResponse<T>(
       res,
@@ -75,15 +91,15 @@ export class ApiService {
   /**
    * POST request.
    * @param endpoint - The API endpoint (e.g. "/users").
-   * @param data - The payload to post.
+   * @param data - The payload to post (optional).
    * @returns JSON data of type T.
    */
-  public async post<T>(endpoint: string, data: unknown): Promise<T> {
+  public async post<T>(endpoint: string, data?: unknown): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "POST",
-      headers: this.defaultHeaders,
-      body: JSON.stringify(data),
+      headers: this.getHeaders(),
+      body: data !== undefined ? JSON.stringify(data) : undefined,
     });
     return this.processResponse<T>(
       res,
@@ -94,15 +110,15 @@ export class ApiService {
   /**
    * PUT request.
    * @param endpoint - The API endpoint (e.g. "/users/123").
-   * @param data - The payload to update.
+   * @param data - The payload to update (optional).
    * @returns JSON data of type T.
    */
-  public async put<T>(endpoint: string, data: unknown): Promise<T> {
+  public async put<T>(endpoint: string, data?: unknown): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "PUT",
-      headers: this.defaultHeaders,
-      body: JSON.stringify(data),
+      headers: this.getHeaders(),
+      body: data !== undefined ? JSON.stringify(data) : undefined,
     });
     return this.processResponse<T>(
       res,
@@ -119,7 +135,7 @@ export class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     const res = await fetch(url, {
       method: "DELETE",
-      headers: this.defaultHeaders,
+      headers: this.getHeaders(),
     });
     return this.processResponse<T>(
       res,
