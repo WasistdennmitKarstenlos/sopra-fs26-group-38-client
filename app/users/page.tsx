@@ -1,5 +1,5 @@
-// this code is part of S2 to display a list of all registered users
-// clicking on a user in this list will display /app/users/[id]/page.tsx
+// Dashboard: shows a list of all registered users (authenticated route).
+// Clicking a user row navigates to /users/[id].
 "use client"; // For components that need React hooks and browser APIs, SSR (server side rendering) has to be disabled. Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
 
 import React, { useEffect, useState } from "react";
@@ -7,10 +7,8 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Button, Card, Table } from "antd";
-import type { TableProps } from "antd"; // antd component library allows imports of types
-// Optionally, you can import a CSS module or file for additional styling:
-// import "@/styles/views/Dashboard.scss";
+import { Button, Card, Divider, Table } from "antd";
+import type { TableProps } from "antd";
 
 // Columns for the antd table of User objects
 const columns: TableProps<User>["columns"] = [
@@ -35,29 +33,43 @@ const Dashboard: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const [users, setUsers] = useState<User[] | null>(null);
-  // useLocalStorage hook example use
-  // The hook returns an object with the value and two functions
-  // Simply choose what you need from the hook:
-  const {
-    // value: token, // is commented out because we dont need to know the token value for logout
-    // set: setToken, // is commented out because we dont need to set or update the token value
-    clear: clearToken, // all we need in this scenario is a method to clear the token
-  } = useLocalStorage<string>("token", ""); // if you wanted to select a different token, i.e "lobby", useLocalStorage<string>("lobby", "");
 
-  const handleLogout = (): void => {
-    // Clear token using the returned function 'clear' from the hook
-    clearToken();
-    router.push("/login");
+  // Read the token to guard this page
+  const {
+    value: token,
+    clear: clearToken,
+  } = useLocalStorage<string>("token", "");
+
+  // Clear the stored user ID on logout
+  const { clear: clearUserId } = useLocalStorage<string>("userId", "");
+
+  const handleLogout = async () => {
+    try {
+      // POST /auth/logout — server invalidates the token
+      await apiService.post("/auth/logout");
+    } catch (error) {
+      // Log but don't block logout on a server error
+      if (error instanceof Error) {
+        console.error(`Logout request failed: ${error.message}`);
+      }
+    } finally {
+      // Always clear local session data and redirect to login
+      clearToken();
+      clearUserId();
+      router.push("/login");
+    }
   };
 
   useEffect(() => {
+    // Only fetch users if we have a valid token
+    if (!token) {
+      return;
+    }
+
     const fetchUsers = async () => {
       try {
-        // apiService.get<User[]> returns the parsed JSON object directly,
-        // thus we can simply assign it to our users variable.
-        const users: User[] = await apiService.get<User[]>("/users");
-        setUsers(users);
-        console.log("Fetched users:", users);
+        const fetchedUsers: User[] = await apiService.get<User[]>("/users");
+        setUsers(fetchedUsers);
       } catch (error) {
         if (error instanceof Error) {
           alert(`Something went wrong while fetching users:\n${error.message}`);
@@ -68,15 +80,31 @@ const Dashboard: React.FC = () => {
     };
 
     fetchUsers();
-  }, [apiService]); // dependency apiService does not re-trigger the useEffect on every render because the hook uses memoization (check useApi.tsx in the hooks).
-  // if the dependency array is left empty, the useEffect will trigger exactly once
-  // if the dependency array is left away, the useEffect will run on every state change. Since we do a state change to users in the useEffect, this results in an infinite loop.
-  // read more here: https://react.dev/reference/react/useEffect#specifying-reactive-dependencies
+  }, [apiService, token, router]);
+  // - apiService changes when token changes (memoized in useApi)
+  // - token changes trigger a re-check of auth state
+  // - router is stable but listed to satisfy exhaustive-deps
+
+  // Guard: if no token, show an "access denied" message
+  if (!token) {
+    return (
+      <div className="card-container">
+        <Card className="dashboard-container" style={{ textAlign: "center" }}>
+          <h2>This page is only accessible for logged-in users.</h2>
+          <div style={{ marginTop: "20px" }}>
+            <Button type="primary" onClick={() => router.push("/login")}>
+              Go to Login
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="card-container">
       <Card
-        title="Get all users from secure endpoint:"
+        title="All users"
         loading={!users}
         className="dashboard-container"
       >
