@@ -40,12 +40,14 @@ TA meeting slot: March 30, 2026 (08:00-10:00)
 |  | Ajay Sathish Shenoy | 2026-03-27 | [304c9e8](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/304c9e8) | Task 2: Frontend Trip Creation UI - Implement trip creation flow (closes #16, #17, #18, #19, #45) | Implements frontend for US-04: Create trip form, trip room display, error handling, and navigation flow with full integration to backend |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/a49ca563711e6e7bd0751f8153ead2ae8c00732b | Create Trip Model | Is the basis for the trip and any DB interaction. |
+|  | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/6b358daf98d199c9e86b3c807d6961f49532a16c | Returns all trips for a user. | Required for the user dashboard so they can see their trips. |
+|  | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/702370e57e8101c71f7184b2bd1b5e4a8d2388fe | Require authorization for trip endpoint. | Required for the user dashboard so they can see their trips. |
+|  | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/74339e639b3f859a4ccc96d0fe2e3e38485cbcf5 | Tests for auth and get trips. | Ensure high quality code. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/1c6589f899b676f5620a9981bb668aedb4c0d223 | Redirect users to the dashboard after login | ensure functionality |
+|  | Jean Leon Keim | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/f76d151 | design and functionalities of the dashboard page | Start point for every interaction after login |
 
 ---
 
