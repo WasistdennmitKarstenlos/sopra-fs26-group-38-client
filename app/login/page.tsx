@@ -36,11 +36,12 @@ const Login: React.FC = () => {
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
 
-      // Navigate to the user overview
-      router.push("/dashboard");
+      // Navigate to trip overview on successful login
+      router.push("/trips");
     } catch (error) {
       if (error instanceof Error) {
-        alert(`Something went wrong during the login:\n${error.message}`);
+        // Show inline error message for invalid credentials and backend errors
+        setErrorMsg(error.message);
       } else {
         setErrorMsg("An unexpected error occurred. Please try again.");
       }
