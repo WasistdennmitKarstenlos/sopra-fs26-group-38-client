@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import styles from "./login.module.css";
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -51,11 +50,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className={styles.background}>
-      <div className={styles.card}>
+    <div className="min-h-screen bg-cover bg-center flex items-center justify-center" style={{ backgroundImage: "url('/images/Background.jpg')" }}>
+      <div className="bg-white rounded-2xl px-12 py-10 w-full max-w-md shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
 
         {/* TripSync Logo */}
-        <div className={styles.logoContainer}>
+        <div className="flex justify-center mb-5">
           <Image
             src="/logos/Logo.jpeg"
             alt="TripSync"
@@ -66,23 +65,27 @@ const Login: React.FC = () => {
           />
         </div>
 
-        <h2 className={styles.title}>Log in to your account</h2>
-        <p className={styles.subtitle}>Welcome back! Please enter your details.</p>
+        <h2 className="text-center text-gray-900 text-xl font-bold mb-2">Log in to your account</h2>
+        <p className="text-center text-gray-500 text-sm mb-6">Welcome back! Please enter your details.</p>
 
         {/* Inline error feedback */}
-        {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+        {errorMsg && (
+          <p className="text-red-600 text-xs text-center bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
+            {errorMsg}
+          </p>
+        )}
 
         <form onSubmit={handleLogin}>
 
           {/* Username */}
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="username">
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-medium mb-1.5" htmlFor="username">
               Username
             </label>
             <input
               id="username"
               type="text"
-              className={styles.input}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white outline-none transition focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 placeholder:text-gray-400"
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -92,14 +95,14 @@ const Login: React.FC = () => {
           </div>
 
           {/* Password */}
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="password">
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-medium mb-1.5" htmlFor="password">
               Password
             </label>
             <input
               id="password"
               type="password"
-              className={styles.input}
+              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white outline-none transition focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 placeholder:text-gray-400"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -109,12 +112,12 @@ const Login: React.FC = () => {
           </div>
 
           {/* Remember + Forgot password */}
-          <div className={styles.rememberRow}>
-            <label className={styles.rememberLabel}>
-              <input type="checkbox" className={styles.checkbox} />
+          <div className="flex justify-between items-center mb-6">
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+              <input type="checkbox" className="w-4 h-4 cursor-pointer accent-blue-500" />
               Remember for 30 days
             </label>
-            <button type="button" className={styles.forgotBtn}>
+            <button type="button" className="text-blue-500 text-sm font-medium bg-none border-none cursor-pointer p-0 hover:underline">
               Forgot password
             </button>
           </div>
@@ -122,7 +125,7 @@ const Login: React.FC = () => {
           {/* Login button */}
           <button
             type="submit"
-            className={styles.loginBtn}
+            className="w-full py-3 bg-blue-500 text-white border-none rounded-lg text-[15px] font-semibold cursor-pointer mb-4 transition hover:bg-blue-600 disabled:opacity-65 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? "Logging in…" : "Login"}
@@ -130,10 +133,10 @@ const Login: React.FC = () => {
         </form>
 
         {/* Sign Up link */}
-        <div className={styles.signupRow}>
+        <div className="text-center">
           <button
             type="button"
-            className={styles.signupBtn}
+            className="text-blue-500 text-sm font-medium bg-none border-none cursor-pointer p-0 hover:underline"
             onClick={() => router.push("/register")}
           >
             No Account? Sign Up!
