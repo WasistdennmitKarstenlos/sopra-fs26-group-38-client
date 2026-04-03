@@ -1,97 +1,147 @@
-"use client"; // For components that need React hooks and browser APIs, SSR (server side rendering) has to be disabled. Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
+"use client";
 
-import { useRouter } from "next/navigation"; // use NextJS router for navigation
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import { Button, Form, Input } from "antd";
-// Optionally, you can import a CSS module or file for additional styling:
-// import styles from "@/styles/page.module.css";
+import styles from "./register.module.css";
 
-interface FormFieldProps {
-  label: string;
-  value: string;
+interface RegisterPayload {
+  username: string;
+  password: string;
+  bio: string;
 }
 
 const Register: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const [form] = Form.useForm();
-  // useLocalStorage hook example use
-  // The hook returns an object with the value and two functions
-  // Simply choose what you need from the hook:
-  const {
-    // value: token, // is commented out because we do not need the token value
-    set: setToken, // we need this method to set the value of the token to the one we receive from the POST request to the backend server API
-    // clear: clearToken, // is commented out because we do not need to clear the token when logging in
-  } = useLocalStorage<string>("token", ""); // note that the key we are selecting is "token" and the default value we are setting is an empty string
-  // if you want to pick a different token, i.e "usertoken", the line above would look as follows: } = useLocalStorage<string>("usertoken", "");
 
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [bio, setBio] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<string>("userId", "");
 
-  const handleRegister = async (values: FormFieldProps) => {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+
+    const payload: RegisterPayload = {
+      username,
+      password,
+      bio,
+    };
+
     try {
-      // Call the API service and let it handle JSON serialization and error handling
-      const response = await apiService.post<User>("/users/register", values);
+      const response = await apiService.post<User>("/users/register", payload);
 
-      // Use the useLocalStorage hook that returned a setter function (setToken in line 41) to store the token if available
-      if (response.token) {
-        setToken(response.token);
-      }
+      if (response.token) setToken(response.token);
+      if (response.id) setUserId(response.id);
 
-      // Store the user ID for the logged-in user
-      if (response.id) {
-        setUserId(response.id);
-      }
-
-      // Navigate to the user overview
       router.push("/users");
     } catch (error) {
       if (error instanceof Error) {
         alert(`Something went wrong during the registration:\n${error.message}`);
       } else {
-        console.error("An unknown error occurred during registration.");
+        setErrorMsg("An unexpected error occurred. Please try again.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="register-container">
-      <Form
-        form={form}
-        name="register"
-        size="large"
-        variant="outlined"
-        onFinish={handleRegister}
-        layout="vertical"
-      >
-        <Form.Item
-          name="username"
-          label="Username"
-          rules={[{ required: true, message: "Please input your username!" }]}
-        >
-          <Input placeholder="Enter username" />
-        </Form.Item>
-        <Form.Item
-          name="password"
-          label="Password"
-          rules={[{ required: true, message: "Please input your password!" }]}
-        >
-          <Input.Password placeholder="Enter password" />
-        </Form.Item>
-        <Form.Item
-          name="bio"
-          label="Biography"
-          rules={[{ required: true, message: "Please input your bio!" }]}
-        >
-          <Input placeholder="Enter biography" />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" className="register-button">
-            Register
-          </Button>
-        </Form.Item>
-      </Form>
+    <div className={styles.background}>
+      <div className={styles.card}>
+        <div className={styles.logoContainer}>
+          <Image
+            src="/logos/Logo.jpeg"
+            alt="TripSync"
+            width={180}
+            height={50}
+            style={{ objectFit: "contain" }}
+            priority
+          />
+        </div>
+
+        <h2 className={styles.title}>Create your account</h2>
+        <p className={styles.subtitle}>Join TripSync! Please enter your details.</p>
+
+        {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+
+        <form onSubmit={handleRegister}>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="username">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              className={styles.input}
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              autoComplete="username"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              className={styles.input}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="new-password"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="bio">
+              Biography
+            </label>
+            <input
+              id="bio"
+              type="text"
+              className={styles.input}
+              placeholder="Enter your biography"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className={styles.registerBtn}
+            disabled={loading}
+          >
+            {loading ? "Creating account..." : "Register"}
+          </button>
+        </form>
+
+        <div className={styles.loginRow}>
+          <button
+            type="button"
+            className={styles.loginBtn}
+            onClick={() => router.push("/login")}
+          >
+            Already have an account? Log in!
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
