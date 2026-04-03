@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -39,8 +40,21 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-app-dark flex items-center justify-center">
+    <div className="min-h-screen bg-cover bg-center flex items-center justify-center" style={{ backgroundImage: "url('/images/Background.jpg')" }}>
       <div className="bg-white rounded-2xl px-12 py-10 w-full max-w-md shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+
+        {/* TripSync Logo */}
+        <div className="flex justify-center mb-5">
+          <Image
+            src="/logos/Logo.jpeg"
+            alt="TripSync"
+            width={180}
+            height={50}
+            style={{ objectFit: "contain" }}
+            priority
+          />
+        </div>
+
         <h2 className="text-center text-gray-900 text-xl font-bold mb-2">Create an account</h2>
         <p className="text-center text-gray-500 text-sm mb-6">Fill in the details below to get started.</p>
 
