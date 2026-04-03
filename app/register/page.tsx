@@ -93,7 +93,7 @@ const Register: React.FC = () => {
 
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-medium mb-1.5" htmlFor="bio">
-              Biography
+              Biography <span className="text-gray-400 text-xs">(optional)</span>
             </label>
             <input
               id="bio"
@@ -102,7 +102,6 @@ const Register: React.FC = () => {
               placeholder="Enter biography"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              required
             />
           </div>
 
