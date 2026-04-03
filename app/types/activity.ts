@@ -1,4 +1,5 @@
 export interface ActivitySearchResult {
+  id?: number | null;
   placeId: string | null;
   name: string | null;
   address: string | null;
