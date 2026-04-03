@@ -12,7 +12,7 @@ interface RegisterPayload {
   username: string;
   password: string;
   bio: string;
-}
+} 
 
 const Register: React.FC = () => {
   const router = useRouter();
@@ -44,7 +44,7 @@ const Register: React.FC = () => {
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
 
-      router.push("/users");
+      router.push("/trips");
     } catch (error) {
       if (error instanceof Error) {
         alert(`Something went wrong during the registration:\n${error.message}`);
@@ -56,94 +56,110 @@ const Register: React.FC = () => {
     }
   };
 
-  return (
-    <div className={styles.background}>
-      <div className={styles.card}>
-        <div className={styles.logoContainer}>
-          <Image
-            src="/logos/Logo.jpeg"
-            alt="TripSync"
-            width={180}
-            height={50}
-            style={{ objectFit: "contain" }}
-            priority
+return (
+  <div className="min-h-screen bg-app-dark flex items-center justify-center px-4">
+    <div className="w-full max-w-md rounded-2xl bg-white px-8 py-10 shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:px-10">
+      <div className="mb-6 flex justify-center">
+        <Image
+          src="/logos/Logo.jpeg"
+          alt="TripSync"
+          width={180}
+          height={50}
+          className="h-auto object-contain"
+          priority
+        />
+      </div>
+
+      <h2 className="text-center text-2xl font-bold text-gray-900">
+        Create your account
+      </h2>
+      <p className="mt-2 mb-6 text-center text-sm text-gray-500">
+        Join TripSync! Please enter your details.
+      </p>
+
+      {errorMsg && (
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+          {errorMsg}
+        </p>
+      )}
+
+      <form onSubmit={handleRegister} className="space-y-4">
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-gray-700"
+            htmlFor="username"
+          >
+            Username
+          </label>
+          <input
+            id="username"
+            type="text"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+            placeholder="Enter your username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            autoComplete="username"
           />
         </div>
 
-        <h2 className={styles.title}>Create your account</h2>
-        <p className={styles.subtitle}>Join TripSync! Please enter your details.</p>
-
-        {errorMsg && <p className={styles.error}>{errorMsg}</p>}
-
-        <form onSubmit={handleRegister}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="username">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              className={styles.input}
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoComplete="username"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className={styles.input}
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="bio">
-              Biography
-            </label>
-            <input
-              id="bio"
-              type="text"
-              className={styles.input}
-              placeholder="Enter your biography"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={styles.registerBtn}
-            disabled={loading}
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-gray-700"
+            htmlFor="password"
           >
-            {loading ? "Creating account..." : "Register"}
-          </button>
-        </form>
-
-        <div className={styles.loginRow}>
-          <button
-            type="button"
-            className={styles.loginBtn}
-            onClick={() => router.push("/login")}
-          >
-            Already have an account? Log in!
-          </button>
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
         </div>
+
+        <div>
+          <label
+            className="mb-1.5 block text-sm font-medium text-gray-700"
+            htmlFor="bio"
+          >
+            Biography
+          </label>
+          <input
+            id="bio"
+            type="text"
+            className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+            placeholder="Enter your biography"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full rounded-lg bg-blue-500 py-3 text-[15px] font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-65"
+          disabled={loading}
+        >
+          {loading ? "Creating account..." : "Register"}
+        </button>
+      </form>
+
+      <div className="mt-5 text-center">
+        <button
+          type="button"
+          className="text-sm font-medium text-blue-500 transition hover:underline"
+          onClick={() => router.push("/login")}
+        >
+          Already have an account? Log in!
+        </button>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 export default Register;
