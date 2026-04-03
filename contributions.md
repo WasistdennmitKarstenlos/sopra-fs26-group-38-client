@@ -65,8 +65,8 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/57 | Fixing Register and Login page | It handles Errors, makes the sites more beautiful and improves the flow |
+|  | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/132 | Tests for login/logout and improve some some small stuff | To make sure everything works as intended in the backend |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
