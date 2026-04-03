@@ -37,7 +37,7 @@ const Login: React.FC = () => {
       if (response.id) setUserId(response.id);
 
       // Navigate to trip overview on successful login
-      router.push("/trips");
+      router.push("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         // Show inline error message for invalid credentials and backend errors

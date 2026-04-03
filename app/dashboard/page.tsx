@@ -1,7 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { clear: clearToken } = useLocalStorage("token", "");
+  const { clear: clearUserId } = useLocalStorage("userId", "");
+
+  const handleLogout = () => {
+    clearToken();
+    clearUserId();
+    router.push("/login");
+  };
         // Mock data for demonstration purposes
   const myTrips = [
     { id: 1, name: "Summer Vacation", members: "Erica, Michael, Andrew, Luana" },
@@ -39,6 +50,13 @@ export default function DashboardPage() {
             <span className="w-5.5 text-center text-xl">🔗</span>
             <span>Shared Trips</span>
           </a>
+          <button
+            className="flex items-center gap-3.5 px-3.5 py-3 rounded-[10px] text-[#555] text-base hover:bg-[#e9eefc] border-none bg-transparent cursor-pointer text-left"
+            onClick={handleLogout}
+          >
+            <span className="w-5.5 text-center text-xl">⏻</span>
+            <span>Logout</span>
+          </button>
         </nav>
 
         <div className="flex items-center gap-3.5 pt-4.5 border-t border-[#dcdcdc]">
