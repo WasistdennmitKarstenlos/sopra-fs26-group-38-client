@@ -46,18 +46,21 @@ export class ApiService {
       let errorDetail = res.statusText;
       try {
         const errorInfo = await res.json();
-        if (errorInfo?.message) {
+        if (errorInfo?.detail) {
+          errorDetail = errorInfo.detail;
+        } else if (errorInfo?.message) {
           errorDetail = errorInfo.message;
+        } else if (errorInfo?.title) {
+          errorDetail = errorInfo.title;
         } else {
           errorDetail = JSON.stringify(errorInfo);
         }
       } catch {
         // If parsing fails, keep using res.statusText
       }
-      const detailedMessage = `${errorMessage} (${res.status}: ${errorDetail})`;
-      const error: ApplicationError = new Error(
-        detailedMessage,
-      ) as ApplicationError;
+      // Prefer user-facing message from API if available.
+      const userMessage = errorDetail || res.statusText || "Unknown error";
+      const error: ApplicationError = new Error(userMessage) as ApplicationError;
       error.info = JSON.stringify(
         { status: res.status, statusText: res.statusText },
         null,
