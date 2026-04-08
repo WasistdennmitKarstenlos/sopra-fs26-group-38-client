@@ -30,56 +30,126 @@ reason).
 
 ---
 
-## Contributions Week 1 - March 27, 2026 to April 3, 2026
+## Contributions Week 1 - March 23, 2026 to March 30, 2026
 
-| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
-| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@sajayshenoy]** | 2026-03-27 | [f25aea4](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/f25aea4) | Task 1: Backend Trip Management API - Implement trip creation endpoint with validation (closes #52, #53, #54, #55, #56, #61) | Implements core backend logic for US-04: Trip entity, service, controller, DTOs, and tests for room code generation and trip creation with validation |
-|                    | 2026-03-27 | [304c9e8](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/304c9e8) | Task 2: Frontend Trip Creation UI - Implement trip creation flow (closes #16, #17, #18, #19, #45) | Implements frontend for US-04: Create trip form, trip room display, error handling, and navigation flow with full integration to backend |
+TA meeting slot: March 30, 2026 (08:00-10:00)
 
----
-
-## Contributions Week 2 - [Begin Date] to [End Date]
-
-| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
-| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-03-27 | [f25aea4](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/f25aea4) | Task 1: Backend Trip Management API - Implement trip creation endpoint with validation (closes #52, #53, #54, #55, #56, #61) | Implements core backend logic for US-04: Trip entity, service, controller, DTOs, and tests for room code generation and trip creation with validation |
+|  | Ajay Sathish Shenoy | 2026-03-27 | [304c9e8](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/304c9e8) | Task 2: Frontend Trip Creation UI - Implement trip creation flow (closes #16, #17, #18, #19, #45) | Implements frontend for US-04: Create trip form, trip room display, error handling, and navigation flow with full integration to backend |
+| **[@itsmeroya]** | Arjun Roy | 2026-03-29| [8a88f6272bd8766206d7affa1f6e04e2ed048113](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/8a88f6272bd8766206d7affa1f6e04e2ed048113) | Create user registration,implement registration endpoint, validate required fields, check username uniqueness; Issues # 16,17,18,19 | Sets up user registration in the backend and forms th basis for linking to user login |
+|  | Arjun Roy | 2026-03-29 | [784d579fa630a1fb5e859aca0efe0e78fb591b96](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/784d579fa630a1fb5e859aca0efe0e78fb591b96) | Build registration form with username, password, and bio | Basic setup for registration form display on the frontend |
+| **[@3xpr]** | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/a49ca563711e6e7bd0751f8153ead2ae8c00732b | Create Trip Model | Is the basis for the trip and any DB interaction. |
+|  | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/6b358daf98d199c9e86b3c807d6961f49532a16c | Returns all trips for a user. | Required for the user dashboard so they can see their trips. |
+|  | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/702370e57e8101c71f7184b2bd1b5e4a8d2388fe | Require authorization for trip endpoint. | Required for the user dashboard so they can see their trips. |
+|  | Joel Marc Dickey | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/74339e639b3f859a4ccc96d0fe2e3e38485cbcf5 | Tests for auth and get trips. | Ensure high quality code. |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-03-24 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/0a1481596eb9d36d4d119c3f009e4ef9205294aa | Login/Logout Backend Endpoints | Required for user login and logout |
+|  | Lennart Robin Zirn | 2026-03-24 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/e66326b77b547132bf8b618512f8bb614b4076b2 | Build Login Page | Required for user login and logout |
+|  | Lennart Robin Zirn | 2026-03-24 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/620ef13d67a28449239bfa9e04a249d8af6a8d34 | The first part login/logout backend implementation Pull request (Includes the backend endpoints) | Required for user login and logout |
+|  | Lennart Robin Zirn | 2026-03-24 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/084f2d918a1db93763f1dcb61bfc1fd275a5628b | The first part login/logout frontend implementation Pull request (Includes the login page) | Required for user login and logout |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/1c6589f899b676f5620a9981bb668aedb4c0d223 | Redirect users to the dashboard after login | ensure functionality |
+|  | Jean Leon Keim | 2026-03-26 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/f76d151 | design and functionalities of the dashboard page | Start point for every interaction after login |
 
 ---
 
-## Contributions Week 3 - [Begin Date] to [End Date]
+## Contributions Week 2 - March 30, 2026 to April 13, 2026
 
-_Continue with the same table format as above._
+TA meeting slot: April 13, 2026 (08:00-10:00)
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/f00cca2ff316bb791c784cd839d5dd4256370dce | BE: Integration of US-01 and US-02 | There were some unresolved conflicts and code that hat to be streamlined. |
+|             | Joel Marc Dickey | 2026-04-02 | No commit | Create Postman collection for all endpoints. | This allows us to directly test the server endpoints and see their outputs. |
+              | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/8d0c513152aab6049adad3bfd34074781cd3d78f | BE: Enable invite generation to a trip room. | This is required, so that the host can generate invite codes for people to join the room. |
+              | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/95316fcc729dc8d7c15274fe6a9ce576e3562ffa | BE: Allow a user to add a destination to a trip. | This is required, so that users can propose where they'd like to go for the respective trip. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/8e6ff0d0b43122d760e307d2bc015513fe01da7b | BE: Unify Naming Conventions according to Documentation | Having all method calls and variables in line with specification ensures easier work and clear communication.  |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/1522d833eeb26169703882ed586192d3bb4961e2 | BE: Resolve duplicate endpoints | Some endpoints were defined twice. Made sure that each controller has a clear scope of their responsibilities. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/68b387ce0faeb457f93bf8676e9ef50d10d0c338 | BE: Resolve DTO Mapping responsibilities for Destination | Handling the TO Mapping is a job for the controller. Moved this functionality to DestinationController and ActivityController respectively. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/2b6eacdd386405f279f76228657eea62ce8983c7 | BE: Resolve DTO Mapping responsibilities for Activity | Handling the TO Mapping is a job for the controller. Moved this functionality to DestinationController and ActivityController respectively. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/fa74e53281487c1d4d82ad7ba63da0b57b5fc013 | BE: Store Google Maps API Key in Application Properties | Safe handling for the API key to protect it from abuse. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/17e5648e270c5a59c3bb1806861b7ade120b86cd | BE: Return Activities as children of Destination objects in stream and static endpoint | To display the activities, they need to be returned somewhere. |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
 ---
 
-## Contributions Week 4 - [Begin Date] to [End Date]
+## Contributions Week 3 - April 13, 2026 to April 20, 2026
 
-_Continue with the same table format as above._
+TA meeting slot: April 20, 2026 (08:00-10:00)
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
+
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
 ---
 
-## Contributions Week 5 - [Begin Date] to [End Date]
+## Contributions Week 4 - April 20, 2026 to May 4, 2026
 
-_Continue with the same table format as above._
+TA meeting slot: May 4, 2026 (08:00-10:00)
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
 ---
 
-## Contributions Week 6 - [Begin Date] to [End Date]
+## Contributions Week 5 - May 4, 2026 to May 11, 2026
 
-_Continue with the same table format as above._
+TA meeting slot: May 11, 2026 (08:00-10:00)
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
+---
+
+## Contributions Week 6 - May 11, 2026 to May 18, 2026
+
+TA meeting slot: May 18, 2026 (08:00-10:00)
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
