@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,6 +7,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { useApi } from "@/hooks/useApi";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Trip } from "@/types/trip";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -17,7 +17,17 @@ export default function DashboardPage() {
 
   const { clear: clearToken } = useLocalStorage("token", "");
   const { clear: clearUserId } = useLocalStorage("userId", "");
+  const { clear: clearUsername } = useLocalStorage("username", "");
   const { value: token } = useLocalStorage<string>("token", "");
+
+  const getStoredToken = useCallback((): string => {
+    try {
+      const raw = globalThis.localStorage?.getItem("token");
+      return raw ? (JSON.parse(raw) as string) : "";
+    } catch {
+      return "";
+    }
+  }, []);
 
   const [createTripOpen, setCreateTripOpen] = useState(false);
   const [tripName, setTripName] = useState("");
@@ -27,6 +37,7 @@ export default function DashboardPage() {
   const handleLogout = () => {
     clearToken();
     clearUserId();
+    clearUsername();
     router.push("/login");
   };
 
@@ -52,7 +63,8 @@ export default function DashboardPage() {
       event.preventDefault();
       setFeedback(null);
 
-      if (!token) {
+      const effectiveToken = token || getStoredToken();
+      if (!effectiveToken) {
         router.push("/login");
         return;
       }
@@ -86,7 +98,7 @@ export default function DashboardPage() {
         setCreating(false);
       }
     },
-    [apiService, router, token, tripName]
+    [apiService, getStoredToken, router, token, tripName]
   );
 
         // Mock data for demonstration purposes
@@ -107,42 +119,7 @@ export default function DashboardPage() {
   ];
   return (
     <div className="grid grid-cols-[270px_1fr] h-screen overflow-hidden bg-[#f7f7f7] text-[#111]">
-      {/* Sidebar */}
-      <aside className="sticky top-0 h-screen flex flex-col justify-between py-7 px-5 bg-[#f2f2f2] border-r border-[#ddd]">
-        <div className="mb-9">
-          <Image src="/logo.png" alt="TripSync logo" width={170} height={48} priority />
-        </div>
-
-        <nav className="flex flex-col gap-2.5 flex-1">
-          <a className="flex items-center gap-3.5 px-3.5 py-3 rounded-[10px] text-[#2684ff] bg-[#eef5ff] font-semibold text-base" href="#">
-            <span className="w-5.5 text-center text-xl">⌂</span>
-            <span>Home</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-3.5 py-3 rounded-[10px] text-[#555] text-base hover:bg-[#e9eefc]" href="#my-trips">
-            <span className="w-5.5 text-center text-xl">✈</span>
-            <span>My Trips</span>
-          </a>
-          <a className="flex items-center gap-3.5 px-3.5 py-3 rounded-[10px] text-[#555] text-base hover:bg-[#e9eefc]" href="#shared-trips">
-            <span className="w-5.5 text-center text-xl">🔗</span>
-            <span>Shared Trips</span>
-          </a>
-          <button
-            className="flex items-center gap-3.5 px-3.5 py-3 rounded-[10px] text-[#555] text-base hover:bg-[#e9eefc] border-none bg-transparent cursor-pointer text-left"
-            onClick={handleLogout}
-          >
-            <span className="w-5.5 text-center text-xl">⏻</span>
-            <span>Logout</span>
-          </button>
-        </nav>
-
-        <div className="flex items-center gap-3.5 pt-4.5 border-t border-[#dcdcdc]">
-          <div className="w-13 h-13 rounded-xl bg-gradient-to-br from-[#d8d8d8] to-[#bfbfbf]" />
-          <div>
-            <p className="m-0 text-base font-semibold">Erica</p>
-            <p className="mt-1 text-sm text-[#666]">erica@gmail.com</p>
-          </div>
-        </div>
-      </aside>
+      <Sidebar onLogout={handleLogout} />
 
       {/* Main content */}
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
@@ -156,7 +133,8 @@ export default function DashboardPage() {
               className="border-none rounded-[10px] px-5 py-3 text-[15px] font-semibold cursor-pointer bg-[#2684ff] text-white"
               type="button"
               onClick={() => {
-                if (!token) {
+                const effectiveToken = token || getStoredToken();
+                if (!effectiveToken) {
                   router.push("/login");
                   return;
                 }
