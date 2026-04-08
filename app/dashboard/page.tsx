@@ -66,13 +66,13 @@ export default function DashboardPage() {
       setCreating(true);
       try {
         const response = await apiService.post<Trip>("/trips", { name: normalizedTripName });
-        if (response?.roomCode) {
+        if (response?.id) {
           setFeedback({ type: "success", text: "Trip created successfully! Redirecting..." });
-          router.push(`/trips/${response.roomCode}`);
+          router.push(`/trips/${response.id}`);
           return;
         }
 
-        setFeedback({ type: "error", text: "Trip created, but no room code was returned." });
+        setFeedback({ type: "error", text: "Trip created, but no trip id was returned." });
       } catch (error) {
         const err = error as Error & { status?: number };
         if (err.status === 409) {

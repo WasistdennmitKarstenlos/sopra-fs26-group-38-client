@@ -9,7 +9,7 @@ import { Trip } from "@/types/trip";
 export default function TripRoom() {
   const router = useRouter();
   const params = useParams();
-  const roomCode = params.id as string;
+  const tripId = params.id as string;
   const apiService = useApi();
   const { value: token } = useLocalStorage<string>("token", "");
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -26,12 +26,12 @@ export default function TripRoom() {
 
   // Fetch trip details
   useEffect(() => {
-    if (!token || !roomCode) return;
+    if (!token || !tripId) return;
 
     const fetchTrip = async () => {
       try {
         setLoading(true);
-        const response = await apiService.get<Trip>(`/trips/${roomCode}`);
+        const response = await apiService.get<Trip>(`/trips/${tripId}`);
         if (response) {
           setTrip(response);
         }
@@ -49,7 +49,7 @@ export default function TripRoom() {
     };
 
     fetchTrip();
-  }, [token, roomCode, apiService, router]);
+  }, [token, tripId, apiService, router]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {
@@ -81,7 +81,7 @@ export default function TripRoom() {
       <div className="mx-auto w-full max-w-5xl">
         <button
           type="button"
-          onClick={() => router.push("/users")}
+          onClick={() => router.push("/dashboard")}
           className="mb-4 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
         >
           Back to Dashboard
