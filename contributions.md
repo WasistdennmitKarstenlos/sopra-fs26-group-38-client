@@ -62,9 +62,18 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 | **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+|                  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/f00cca2ff316bb791c784cd839d5dd4256370dce | BE: Integration of US-01 and US-02 | There were some unresolved conflicts and code that hat to be streamlined. |
+|             | Joel Marc Dickey | 2026-04-02 | No commit | Create Postman collection for all endpoints. | This allows us to directly test the server endpoints and see their outputs. |
+              | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/8d0c513152aab6049adad3bfd34074781cd3d78f | BE: Enable invite generation to a trip room. | This is required, so that the host can generate invite codes for people to join the room. |
+              | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/95316fcc729dc8d7c15274fe6a9ce576e3562ffa | BE: Allow a user to add a destination to a trip. | This is required, so that users can propose where they'd like to go for the respective trip. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/8e6ff0d0b43122d760e307d2bc015513fe01da7b | BE: Unify Naming Conventions according to Documentation | Having all method calls and variables in line with specification ensures easier work and clear communication.  |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/1522d833eeb26169703882ed586192d3bb4961e2 | BE: Resolve duplicate endpoints | Some endpoints were defined twice. Made sure that each controller has a clear scope of their responsibilities. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/68b387ce0faeb457f93bf8676e9ef50d10d0c338 | BE: Resolve DTO Mapping responsibilities for Destination | Handling the TO Mapping is a job for the controller. Moved this functionality to DestinationController and ActivityController respectively. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/2b6eacdd386405f279f76228657eea62ce8983c7 | BE: Resolve DTO Mapping responsibilities for Activity | Handling the TO Mapping is a job for the controller. Moved this functionality to DestinationController and ActivityController respectively. |
+
+
+
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
