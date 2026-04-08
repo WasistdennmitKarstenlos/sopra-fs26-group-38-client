@@ -7,11 +7,12 @@ import {
   PaperAirplaneIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 
 const navigation = [
-  { name: "Home", href: "#", icon: HomeIcon, current: true },
-  { name: "My Trips", href: "#my-trips", icon: PaperAirplaneIcon, current: false },
-  { name: "Shared Trips", href: "#shared-trips", icon: LinkIcon, current: false },
+  { name: "Home", href: "/dashboard", icon: HomeIcon, current: true },
+  { name: "My Trips", href: "/dashboard#my-trips", icon: PaperAirplaneIcon, current: false },
+  { name: "Shared Trips", href: "/dashboard#shared-trips", icon: LinkIcon, current: false },
 ];
 
 function classNames(...classes: Array<string | false | null | undefined>) {
@@ -20,6 +21,11 @@ function classNames(...classes: Array<string | false | null | undefined>) {
 
 export function Sidebar({ onLogout }: { onLogout?: () => void }) {
   const { value: username } = useLocalStorage<string>("username", "");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="relative flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
@@ -64,7 +70,7 @@ export function Sidebar({ onLogout }: { onLogout?: () => void }) {
                 <UserCircleIcon aria-hidden="true" className="size-8 text-gray-400" />
                 <span className="sr-only">Your profile</span>
                 <div className="flex items-center gap-x-2">
-                  <span aria-hidden="true">{username || "User"}</span>
+                  <span aria-hidden="true">{mounted ? (username || "User") : "User"}</span>
                   {onLogout ? (
                     <button
                       type="button"
