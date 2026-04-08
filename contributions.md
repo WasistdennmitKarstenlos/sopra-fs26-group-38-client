@@ -91,6 +91,9 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/46b747213062494db7ef1efa49be3a50ddfdd0c8 | Replace create trip page with modal | Done to match the design in Figma. |
+              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
+
 
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
