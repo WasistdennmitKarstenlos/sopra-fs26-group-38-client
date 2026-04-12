@@ -119,9 +119,15 @@ export default function DashboardPage() {
       } catch (error) {
         const err = error as Error & { status?: number };
         if (err.status === 404) {
-          setFeedback("Trip overview endpoint is not available yet on the backend.");
+          setFeedback({
+            type: "error",
+            text: "Trip overview endpoint is not available yet on the backend.",
+          });
         } else {
-          setFeedback("Failed to load trips from backend. Please try again.");
+          setFeedback({
+            type: "error",
+            text: "Failed to load trips from backend. Please try again.",
+          });
         }
       } finally {
         setLoadingTrips(false);
