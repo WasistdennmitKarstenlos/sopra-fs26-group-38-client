@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import useLocalStorage from "@/hooks/useLocalStorage";
 import { useApi } from "@/hooks/useApi";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Trip } from "@/types/trip";
 import { Sidebar } from "@/components/Sidebar";
@@ -17,6 +17,7 @@ export default function DashboardPage() {
 
   const { clear: clearToken } = useLocalStorage("token", "");
   const { clear: clearUserId } = useLocalStorage("userId", "");
+  const { value: currentUserId } = useLocalStorage<string>("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
   const { value: token } = useLocalStorage<string>("token", "");
 
@@ -101,22 +102,51 @@ export default function DashboardPage() {
     [apiService, getStoredToken, router, token, tripName]
   );
 
-        // Mock data for demonstration purposes
-  const myTrips = [
-    { id: 1, name: "Summer Vacation", members: "Erica, Michael, Andrew, Luana" },
-    { id: 2, name: "Winter Vacation", members: "Sarah, Mike, Lana" },
-    { id: 3, name: "Weekend Trip", members: "Kevin, Michaela" },
-    { id: 4, name: "Solo Getaway", members: "Just Me" },
-  ];
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(true);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const sharedTrips = [
-    { id: 5, name: "Friends Trip", members: "Liam, Emma" },
-    { id: 6, name: "Romantic", members: "Lucas" },
-    { id: 7, name: "Theaters!", members: "Adrian, Nora" },
-    { id: 8, name: "DaVinci Time", members: "Theo" },
-    { id: 9, name: "Beach pls", members: "Mila, Hannah" },
-    { id: 10, name: "Culture or sth.", members: "Tobias, Lea" },
-  ];
+  useEffect(() => {
+      if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchTrips = async () => {
+      try {
+        setLoadingTrips(true);
+        setFeedback(null);
+        const response = await apiService.get<Trip[]>("/trips");
+        setTrips(response ?? []);
+      } catch (error) {
+        const err = error as Error & { status?: number };
+        if (err.status === 404) {
+          setFeedback("Trip overview endpoint is not available yet on the backend.");
+        } else {
+          setFeedback("Failed to load trips from backend. Please try again.");
+        }
+      } finally {
+        setLoadingTrips(false);
+      }
+    };
+
+    fetchTrips();
+  }, [token, apiService, router]);
+
+  const myTrips = useMemo(
+    () => trips.filter((trip) => !!trip.hostId && !!currentUserId && trip.hostId === currentUserId),
+    [trips, currentUserId],
+  );
+
+  const sharedTrips = useMemo(
+    () => trips.filter((trip) => !trip.hostId || !currentUserId || trip.hostId !== currentUserId),
+    [trips, currentUserId],
+  );
+
+  if (!token) {
+    return null;
+  }
+
   return (
     <div className="grid grid-cols-[270px_1fr] h-screen overflow-hidden bg-[#f7f7f7] text-[#111]">
       <Sidebar onLogout={handleLogout} />
@@ -146,6 +176,15 @@ export default function DashboardPage() {
           </div>
         </header>
 
+        {feedback && (
+          <p className="mb-5 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            {feedback}
+          </p>
+        )}
+
+        {loadingTrips && <p className="text-sm text-[#666]">Loading trips from backend...</p>}
+
+        {!loadingTrips && myTrips.length === 0 && sharedTrips.length === 0 ? (
         <Dialog open={createTripOpen} onClose={closeCreateTrip} className="relative z-10">
           <DialogBackdrop
             transition
@@ -212,12 +251,11 @@ export default function DashboardPage() {
           </div>
         </Dialog>
 
-        {myTrips.length === 0 && sharedTrips.length === 0 ? (
           <section className="flex flex-col items-center justify-center h-full">
             <h1 className="text-5xl font-bold mb-2">Need a Vacation?</h1>
             <p className="text-lg text-[#666]">Create or join one with TripSync</p>
           </section>
-        ) : (
+        ) : !loadingTrips ? (
           <>
             <section id="my-trips" className="mb-14">
               <h1 className="m-0 mb-2 text-[56px] font-bold leading-tight">My Trips</h1>
@@ -225,10 +263,13 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-4 gap-7">
                 {myTrips.map((trip) => (
-                  <Link key={trip.id} href={`/trips/${trip.id}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
+                  <Link key={trip.id ?? `my-${trip.roomCode ?? trip.name}`} href={`/trips/${trip.roomCode}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
                     <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-[#c9d8f0] to-[#8fb0d8] mb-3.5" />
-                    <h3 className="m-0 mb-1.5 text-[22px] font-semibold">{trip.name}</h3>
-                    <p className="m-0 text-sm text-[#666]">{trip.members}</p>
+                    <h3 className="m-0 mb-1.5 text-[22px] font-semibold">{trip.name ?? "Untitled Trip"}</h3>
+                    <p className="m-0 text-sm text-[#666]">Status: {(trip.status ?? "N/A").toLowerCase()}</p>
+                    <p className="m-0 text-sm text-[#666]">
+                      Created: {trip.creationDate ? new Date(trip.creationDate).toLocaleDateString() : "N/A"}
+                    </p>
                   </Link>
                 ))}
               </div>
@@ -240,16 +281,19 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-6 gap-6">
                 {sharedTrips.map((trip) => (
-                  <Link key={trip.id} href={`/trips/${trip.id}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
+                  <Link key={trip.id ?? `shared-${trip.roomCode ?? trip.name}`} href={`/trips/${trip.roomCode}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
                     <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-[#d7d7d7] to-[#bdbdbd] mb-3" />
-                    <h3 className="m-0 mb-1.5 text-lg font-semibold">{trip.name}</h3>
-                    <p className="m-0 text-sm text-[#666]">{trip.members}</p>
+                    <h3 className="m-0 mb-1.5 text-lg font-semibold">{trip.name ?? "Untitled Trip"}</h3>
+                    <p className="m-0 text-sm text-[#666]">Status: {(trip.status ?? "N/A").toLowerCase()}</p>
+                    <p className="m-0 text-sm text-[#666]">
+                      Created: {trip.creationDate ? new Date(trip.creationDate).toLocaleDateString() : "N/A"}
+                    </p>
                   </Link>
                 ))}
               </div>
             </section>
           </>
-        )}
+        ) : null}
       </main>
     </div>
   );
