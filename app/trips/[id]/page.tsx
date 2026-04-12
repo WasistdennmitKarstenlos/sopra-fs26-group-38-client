@@ -7,13 +7,16 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function TripRoom() {
   const router = useRouter();
   const params = useParams();
-  const roomCode = params.id as string;
+  const tripId = params.id as string;
   const apiService = useApi();
-  const { value: token } = useLocalStorage<string>("token", "");
+  const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
+  const { clear: clearUserId } = useLocalStorage("userId", "");
+  const { clear: clearUsername } = useLocalStorage("username", "");
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -27,28 +30,36 @@ export default function TripRoom() {
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
+  const handleLogout = useCallback(() => {
+    clearToken();
+    clearUserId();
+    clearUsername();
+    router.push("/login");
+  }, [clearToken, clearUserId, clearUsername, router]);
+
   const destinationEndpoint = trip?.id && selectedDestinationId !== null
     ? `/trips/${trip.id}/destinations/${selectedDestinationId}/activities`
     : null;
 
   const destinationListEndpoint = trip?.id ? `/trips/${trip.id}/destinations` : null;
 
-  // Check if user is logged in
+  // Check if user is logged in (only after localStorage rehydration to avoid a false redirect)
   useEffect(() => {
+    if (!tokenReady) return;
     if (!token) {
       router.push("/login");
       return;
     }
-  }, [token, router]);
+  }, [tokenReady, token, router]);
 
   // Fetch trip details
   useEffect(() => {
-    if (!token || !roomCode) return;
+    if (!tokenReady || !token || !tripId) return;
 
     const fetchTrip = async () => {
       try {
         setLoading(true);
-        const response = await apiService.get<Trip>(`/trips/${roomCode}`);
+        const response = await apiService.get<Trip>(`/trips/${tripId}`);
         if (response) {
           setTrip(response);
         }
@@ -66,7 +77,7 @@ export default function TripRoom() {
     };
 
     fetchTrip();
-  }, [token, roomCode, apiService, router]);
+  }, [tokenReady, token, tripId, apiService, router]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {
@@ -283,67 +294,52 @@ export default function TripRoom() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-white" aria-label="Loading trip" />
+      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
+        <Sidebar onLogout={handleLogout} />
+        <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div
+              className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900"
+              aria-label="Loading trip"
+            />
+          </div>
+        </main>
       </div>
     );
   }
 
   if (!trip) {
     return (
-      <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
-        <div className="rounded-2xl bg-white p-8 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <p className="text-lg font-semibold text-gray-900">Trip not found</p>
-        </div>
+      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
+        <Sidebar onLogout={handleLogout} />
+        <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
+              <p className="text-lg font-semibold text-gray-900">Trip not found</p>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-app-dark p-6 md:p-10">
-      <div className="mx-auto w-full max-w-5xl">
-        <button
-          type="button"
-          onClick={() => router.push("/users")}
-          className="mb-4 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-        >
-          Back to Dashboard
-        </button>
+    <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
+      <Sidebar onLogout={handleLogout} />
+      <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
+        <div className="mx-auto w-full max-w-5xl">
 
-        {feedback && (
-          <p
-            className={`mb-4 rounded-md border px-3 py-2 text-sm ${
-              feedback.type === "error"
-                ? "border-red-200 bg-red-50 text-red-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700"
-            }`}
-          >
-            {feedback.text}
-          </p>
-        )}
-
-        <section className="mb-6 rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900">{trip.name ?? "Trip"}</h1>
-          <div className="space-y-2 text-sm text-gray-700">
-            <p>
-              <span className="font-semibold text-gray-900">Room Code:</span> {trip.roomCode ?? "N/A"}
-              <button
-                type="button"
-                onClick={handleCopyRoomCode}
-                className="ml-2 rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-              >
-                Copy
-              </button>
+          {feedback && (
+            <p
+              className={`mb-4 rounded-md border px-3 py-2 text-sm ${
+                feedback.type === "error"
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              }`}
+            >
+              {feedback.text}
             </p>
-            <p>
-              <span className="font-semibold text-gray-900">Status:</span>{" "}
-              <span className="capitalize">{trip.status?.toLowerCase() ?? "n/a"}</span>
-            </p>
-            <p>
-              <span className="font-semibold text-gray-900">Created:</span>{" "}
-              {trip.creationDate ? new Date(trip.creationDate).toLocaleDateString() : "N/A"}
-            </p>
-          </div>
+          )}
 
           {trip.status === "ACTIVE" && (
             <div className="mt-4 space-y-3">
@@ -388,7 +384,6 @@ export default function TripRoom() {
               </div>
             </div>
           )}
-        </section>
 
         <section className="rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           <h2 className="mb-2 text-xl font-bold text-gray-900">Participants</h2>
@@ -482,10 +477,10 @@ export default function TripRoom() {
                       <img
                         src={activity.photoUrl}
                         alt={activity.name ?? "Activity"}
-                        className="h-24 w-24 flex-shrink-0 rounded-lg object-cover"
+                        className="h-24 w-24 shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="h-24 w-24 flex-shrink-0 rounded-lg bg-gray-200" />
+                      <div className="h-24 w-24 shrink-0 rounded-lg bg-gray-200" />
                     )}
                     <div className="min-w-0">
                       <h4 className="text-base font-semibold text-gray-900">{activity.name ?? "Unnamed activity"}</h4>
@@ -514,6 +509,7 @@ export default function TripRoom() {
           )}
         </section>
       </div>
+      </main>
     </div>
   );
 }

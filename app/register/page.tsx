@@ -17,6 +17,7 @@ const Register: React.FC = () => {
 
   const { set: setToken } = useLocalStorage<string>("token", "");
   const { set: setUserId } = useLocalStorage<string>("userId", "");
+  const { set: setStoredUsername } = useLocalStorage<string>("username", "");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,8 @@ const Register: React.FC = () => {
 
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
+      if (response.username) setStoredUsername(response.username);
+      else if (username) setStoredUsername(username);
 
       router.push("/dashboard");
     } catch (error) {
@@ -46,7 +49,7 @@ const Register: React.FC = () => {
         {/* TripSync Logo */}
         <div className="flex justify-center mb-5">
           <Image
-            src="/logos/Logo.jpeg"
+            src="/logo.png"
             alt="TripSync"
             width={180}
             height={50}

@@ -20,6 +20,8 @@ const Login: React.FC = () => {
   const { set: setToken } = useLocalStorage<string>("token", "");
   // Persist the user ID for profile / trip pages
   const { set: setUserId } = useLocalStorage<string>("userId", "");
+  // Persist username for UI (e.g. sidebar)
+  const { set: setStoredUsername } = useLocalStorage<string>("username", "");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +37,8 @@ const Login: React.FC = () => {
 
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
+      if (response.username) setStoredUsername(response.username);
+      else if (username) setStoredUsername(username);
 
       // Navigate to trip overview on successful login
       router.push("/dashboard");
@@ -57,7 +61,7 @@ const Login: React.FC = () => {
         {/* TripSync Logo */}
         <div className="flex justify-center mb-5">
           <Image
-            src="/logos/Logo.jpeg"
+            src="/logo.png"
             alt="TripSync"
             width={180}
             height={50}
