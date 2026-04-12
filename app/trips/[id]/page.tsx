@@ -14,8 +14,7 @@ export default function TripRoom() {
   const params = useParams();
   const tripId = params.id as string;
   const apiService = useApi();
-  const { value: token } = useLocalStorage<string>("token", "");
-  const { clear: clearToken } = useLocalStorage("token", "");
+  const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
   const { clear: clearUserId } = useLocalStorage("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -44,17 +43,18 @@ export default function TripRoom() {
 
   const destinationListEndpoint = trip?.id ? `/trips/${trip.id}/destinations` : null;
 
-  // Check if user is logged in
+  // Check if user is logged in (only after localStorage rehydration to avoid a false redirect)
   useEffect(() => {
+    if (!tokenReady) return;
     if (!token) {
       router.push("/login");
       return;
     }
-  }, [token, router]);
+  }, [tokenReady, token, router]);
 
   // Fetch trip details
   useEffect(() => {
-    if (!token || !tripId) return;
+    if (!tokenReady || !token || !tripId) return;
 
     const fetchTrip = async () => {
       try {
@@ -77,7 +77,7 @@ export default function TripRoom() {
     };
 
     fetchTrip();
-  }, [token, tripId, apiService, router]);
+  }, [tokenReady, token, tripId, apiService, router]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {

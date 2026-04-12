@@ -3,23 +3,34 @@
 import Link from "next/link";
 import { useApi } from "@/hooks/useApi";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Trip } from "@/types/trip";
 import { Sidebar } from "@/components/Sidebar";
 
+function CreateTripFromQuery({ onOpen }: { onOpen: () => void }) {
+  const searchParams = useSearchParams();
+  const shouldOpenCreateTrip = useMemo(() => searchParams.get("createTrip") === "1", [searchParams]);
+
+  useEffect(() => {
+    if (shouldOpenCreateTrip) {
+      onOpen();
+    }
+  }, [shouldOpenCreateTrip, onOpen]);
+
+  return null;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const apiService = useApi();
 
-  const { clear: clearToken } = useLocalStorage("token", "");
+  const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
   const { clear: clearUserId } = useLocalStorage("userId", "");
   const { value: currentUserId } = useLocalStorage<string>("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
-  const { value: token } = useLocalStorage<string>("token", "");
   const [createTripOpen, setCreateTripOpen] = useState(false);
   const [tripName, setTripName] = useState("");
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -43,13 +54,7 @@ export default function DashboardPage() {
     router.push("/login");
   };
 
-  const shouldOpenCreateTrip = useMemo(() => searchParams.get("createTrip") === "1", [searchParams]);
-
-  useEffect(() => {
-    if (shouldOpenCreateTrip) {
-      setCreateTripOpen(true);
-    }
-  }, [shouldOpenCreateTrip]);
+  const openCreateTripDialog = useCallback(() => setCreateTripOpen(true), []);
 
   const closeCreateTrip = useCallback(() => {
     setCreateTripOpen(false);
@@ -105,7 +110,8 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-      if (!token) {
+    if (!tokenReady) return;
+    if (!token) {
       router.push("/login");
       return;
     }
@@ -135,7 +141,7 @@ export default function DashboardPage() {
     };
 
     fetchTrips();
-  }, [token, apiService, router]);
+  }, [tokenReady, token, apiService, router]);
 
   const myTrips = useMemo(
     () => trips.filter((trip) => !!trip.hostId && !!currentUserId && trip.hostId === currentUserId),
@@ -147,13 +153,17 @@ export default function DashboardPage() {
     [trips, currentUserId],
   );
 
-  if (!token) {
+  if (!tokenReady || !token) {
     return null;
   }
 
   return (
-    <div className="grid grid-cols-[270px_1fr] h-screen overflow-hidden bg-[#f7f7f7] text-[#111]">
-      <Sidebar onLogout={handleLogout} />
+    <>
+      <Suspense fallback={null}>
+        <CreateTripFromQuery onOpen={openCreateTripDialog} />
+      </Suspense>
+      <div className="grid grid-cols-[270px_1fr] h-screen overflow-hidden bg-[#f7f7f7] text-[#111]">
+        <Sidebar onLogout={handleLogout} />
 
       {/* Main content */}
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
@@ -182,7 +192,7 @@ export default function DashboardPage() {
 
         {feedback && (
           <p className="mb-5 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            {feedback}
+            {feedback.text}
           </p>
         )}
 
@@ -299,6 +309,7 @@ export default function DashboardPage() {
           </div>
         </Dialog>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

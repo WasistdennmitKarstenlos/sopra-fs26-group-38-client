@@ -17,6 +17,7 @@ const Dashboard: React.FC = () => {
   const {
     value: token,
     clear: clearToken,
+    hasRehydrated: tokenReady,
   } = useLocalStorage<string>("token", "");
 
   // Clear the stored user ID on logout
@@ -40,8 +41,8 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    // Only fetch users if we have a valid token
-    if (!token) {
+    // Only fetch users if we have a valid token (and storage has rehydrated)
+    if (!tokenReady || !token) {
       return;
     }
 
@@ -59,10 +60,15 @@ const Dashboard: React.FC = () => {
     };
 
     fetchUsers();
-  }, [apiService, token, router]);
+  }, [apiService, token, tokenReady, router]);
   // - apiService changes when token changes (memoized in useApi)
   // - token changes trigger a re-check of auth state
   // - router is stable but listed to satisfy exhaustive-deps
+
+  // Wait for localStorage before treating empty token as logged out
+  if (!tokenReady) {
+    return null;
+  }
 
   // Guard: if no token, show an "access denied" message
   if (!token) {

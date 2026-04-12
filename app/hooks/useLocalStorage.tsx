@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 interface LocalStorage<T> {
   value: T;
   set: (newVal: T) => void;
   clear: () => void;
+  /** True after the first client layout pass has read this key from localStorage (even if empty). */
+  hasRehydrated: boolean;
 }
 
 /**
@@ -20,25 +22,20 @@ interface LocalStorage<T> {
  *  - value: The current value (synced with localStorage).
  *  - set: Updates both react state & localStorage.
  *  - clear: Resets state to defaultValue and deletes localStorage key.
+ *  - hasRehydrated: After first client read from localStorage; use to avoid auth redirects before rehydration.
  */
 export default function useLocalStorage<T>(
   key: string,
   defaultValue: T,
 ): LocalStorage<T> {
-  const [value, setValue] = useState<T>(() => {
-    if (typeof window === "undefined") return defaultValue; // SSR safeguard
-    try {
-      const stored = globalThis.localStorage.getItem(key);
-      return stored ? (JSON.parse(stored) as T) : defaultValue;
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return defaultValue;
-    }
-  });
+  // Always start with defaultValue so server HTML matches the client's first paint.
+  // localStorage is applied in useLayoutEffect after mount (see below).
+  const [value, setValue] = useState<T>(defaultValue);
+  const [hasRehydrated, setHasRehydrated] = useState(false);
 
-  // On mount, try to read the stored value
-  useEffect(() => {
-    if (typeof window === "undefined") return; // SSR safeguard
+  // After hydration, sync from localStorage before paint. Mark rehydrated in the same commit so
+  // useEffects do not treat the SSR default as "logged out" and redirect before this runs.
+  useLayoutEffect(() => {
     try {
       const stored = globalThis.localStorage.getItem(key);
       if (stored) {
@@ -46,6 +43,8 @@ export default function useLocalStorage<T>(
       }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
+    } finally {
+      setHasRehydrated(true);
     }
   }, [key]);
 
@@ -65,5 +64,5 @@ export default function useLocalStorage<T>(
     }
   };
 
-  return { value, set, clear };
+  return { value, set, clear, hasRehydrated };
 }
