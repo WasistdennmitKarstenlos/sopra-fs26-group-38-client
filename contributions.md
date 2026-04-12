@@ -90,8 +90,9 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 |  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
+|             | Joel Marc Dickey | 2026-04-12 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/73a0b73b4025ef4b0adeb9d817109a674ada3f91 | Change webiste name and favicon. | Website branding to be inline with Tripsync. |
+|             | Joel Marc Dickey | 2026-04-12 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/606c6a2f7c9f2f6f646fc60c5dbd25b2ce28802f | Fix hydration issues with token. | CSR and SSR were not in sync as client side was initialized with filled token while server was not. Resolved to be in line.|
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
