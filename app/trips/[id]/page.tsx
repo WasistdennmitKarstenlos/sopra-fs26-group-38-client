@@ -383,7 +383,7 @@ export default function TripRoom() {
                 ))}
               </div>
             </div>
-          </section>
+          )}
 
         <section className="rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           <h2 className="mb-2 text-xl font-bold text-gray-900">Participants</h2>
@@ -477,10 +477,10 @@ export default function TripRoom() {
                       <img
                         src={activity.photoUrl}
                         alt={activity.name ?? "Activity"}
-                        className="h-24 w-24 flex-shrink-0 rounded-lg object-cover"
+                        className="h-24 w-24 shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="h-24 w-24 flex-shrink-0 rounded-lg bg-gray-200" />
+                      <div className="h-24 w-24 shrink-0 rounded-lg bg-gray-200" />
                     )}
                     <div className="min-w-0">
                       <h4 className="text-base font-semibold text-gray-900">{activity.name ?? "Unnamed activity"}</h4>
@@ -509,6 +509,7 @@ export default function TripRoom() {
           )}
         </section>
       </div>
+      </main>
     </div>
   );
 }
