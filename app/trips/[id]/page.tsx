@@ -15,6 +15,7 @@ export default function TripRoom() {
   const tripId = params.id as string;
   const apiService = useApi();
   const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
+  const { value: currentUserId } = useLocalStorage<string>("userId", "");
   const { clear: clearUserId } = useLocalStorage("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -29,6 +30,7 @@ export default function TripRoom() {
   const [selectedActivities, setSelectedActivities] = useState<ActivitySearchResult[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [finalEvaluationLoading, setFinalEvaluationLoading] = useState(false);
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -42,6 +44,14 @@ export default function TripRoom() {
     : null;
 
   const destinationListEndpoint = trip?.id ? `/trips/${trip.id}/destinations` : null;
+  const normalizedTripHostId = trip?.hostId ? String(trip.hostId) : null;
+  const normalizedCurrentUserId = currentUserId ? String(currentUserId) : null;
+  const isHost = Boolean(normalizedTripHostId && normalizedCurrentUserId && normalizedTripHostId === normalizedCurrentUserId);
+  const isEvaluation = trip?.status === "EVALUATION";
+  const isFinalized = trip?.status === "FINALIZED";
+  const isReadOnlyMode = isEvaluation || isFinalized;
+  const hasAtLeastOneDestination = destinations.length > 0;
+  const canStartFinalEvaluation = isHost && hasAtLeastOneDestination && !isEvaluation && !isFinalized;
 
   // Check if user is logged in (only after localStorage rehydration to avoid a false redirect)
   useEffect(() => {
@@ -121,6 +131,11 @@ export default function TripRoom() {
   }, [fetchDestinations]);
 
   const handleAddDestination = useCallback(async () => {
+    if (isReadOnlyMode) {
+      setFeedback({ type: "error", text: "This room is read-only in evaluation/finalized mode." });
+      return;
+    }
+
     if (!destinationListEndpoint) {
       setFeedback({ type: "error", text: "Trip is not loaded yet." });
       return;
@@ -143,7 +158,7 @@ export default function TripRoom() {
       const err = error as Error;
       setFeedback({ type: "error", text: err.message || "Could not add destination." });
     }
-  }, [apiService, destinationListEndpoint, newDestinationName]);
+  }, [apiService, destinationListEndpoint, isReadOnlyMode, newDestinationName]);
 
   const handleSearchActivities = useCallback(async () => {
     if (!trip?.id || selectedDestinationId === null) {
@@ -201,6 +216,11 @@ export default function TripRoom() {
 
   const handleSelectActivity = useCallback((activity: ActivitySearchResult) => {
     const persistActivity = async () => {
+      if (isReadOnlyMode) {
+        setActivityFeedback({ type: "error", text: "This room is read-only in evaluation/finalized mode." });
+        return;
+      }
+
       if (!destinationEndpoint) {
         setActivityFeedback({ type: "error", text: "Destination is missing." });
         return;
@@ -231,10 +251,15 @@ export default function TripRoom() {
     };
 
     void persistActivity();
-  }, [apiService, destinationEndpoint]);
+  }, [apiService, destinationEndpoint, isReadOnlyMode]);
 
   const handleRenameActivity = useCallback((activity: ActivitySearchResult) => {
     const updateActivity = async () => {
+      if (isReadOnlyMode) {
+        setActivityFeedback({ type: "error", text: "This room is read-only in evaluation/finalized mode." });
+        return;
+      }
+
       if (!destinationEndpoint || !activity.id) {
         setActivityFeedback({ type: "error", text: "Cannot rename this activity." });
         return;
@@ -270,10 +295,15 @@ export default function TripRoom() {
     };
 
     void updateActivity();
-  }, [apiService, destinationEndpoint]);
+  }, [apiService, destinationEndpoint, isReadOnlyMode]);
 
   const handleDeleteActivity = useCallback((activity: ActivitySearchResult) => {
     const deleteActivity = async () => {
+      if (isReadOnlyMode) {
+        setActivityFeedback({ type: "error", text: "This room is read-only in evaluation/finalized mode." });
+        return;
+      }
+
       if (!destinationEndpoint || !activity.id) {
         setActivityFeedback({ type: "error", text: "Cannot delete this activity." });
         return;
@@ -290,7 +320,50 @@ export default function TripRoom() {
     };
 
     void deleteActivity();
-  }, [apiService, destinationEndpoint]);
+  }, [apiService, destinationEndpoint, isReadOnlyMode]);
+
+  const handleStartFinalEvaluation = useCallback(async () => {
+    if (!trip?.id) {
+      setFeedback({ type: "error", text: "Trip is not loaded yet." });
+      return;
+    }
+
+    if (!isHost) {
+      setFeedback({ type: "error", text: "Only the host can start final evaluation." });
+      return;
+    }
+
+    if (!canStartFinalEvaluation) {
+      if (!hasAtLeastOneDestination) {
+        setFeedback({ type: "error", text: "Add at least one destination before final evaluation." });
+      } else if (isEvaluation) {
+        setFeedback({ type: "error", text: "Trip is already in evaluation mode." });
+      } else if (isFinalized) {
+        setFeedback({ type: "error", text: "Trip is finalized and cannot re-enter evaluation mode." });
+      }
+      return;
+    }
+
+    try {
+      setFinalEvaluationLoading(true);
+      const updatedTrip = await apiService.put<Trip>(`/trips/${trip.id}/status?newStatus=EVALUATION`);
+      setTrip(updatedTrip);
+      setFeedback({ type: "success", text: "Trip is now in final evaluation mode (read-only)." });
+    } catch (error) {
+      const err = error as Error;
+      setFeedback({ type: "error", text: err.message || "Could not start final evaluation." });
+    } finally {
+      setFinalEvaluationLoading(false);
+    }
+  }, [apiService, canStartFinalEvaluation, hasAtLeastOneDestination, isEvaluation, isFinalized, isHost, trip?.id]);
+
+  const finalEvaluationDisabledReason = !hasAtLeastOneDestination
+    ? "Add at least one destination first."
+    : isEvaluation
+      ? "Room is already in EVALUATION mode."
+      : isFinalized
+        ? "Room is FINALIZED."
+        : null;
 
   if (loading) {
     return (
@@ -341,8 +414,47 @@ export default function TripRoom() {
             </p>
           )}
 
-          {trip.status === "ACTIVE" && (
-            <div className="mt-4 space-y-3">
+          <section className="mb-6 rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{trip.name ?? "Trip Room"}</h1>
+                <p className="mt-1 text-sm text-gray-600">Status: {trip.status ?? "UNKNOWN"}</p>
+                {trip.roomCode && (
+                  <button
+                    type="button"
+                    onClick={handleCopyRoomCode}
+                    className="mt-2 rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Copy room code: {trip.roomCode}
+                  </button>
+                )}
+              </div>
+
+              {isHost && (
+                <div className="flex max-w-sm flex-col items-start gap-2">
+                  <button
+                    type="button"
+                    onClick={handleStartFinalEvaluation}
+                    disabled={!canStartFinalEvaluation || finalEvaluationLoading}
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {finalEvaluationLoading ? "Switching..." : "Final Evaluation"}
+                  </button>
+                  {!canStartFinalEvaluation && finalEvaluationDisabledReason && (
+                    <p className="text-xs text-gray-600">{finalEvaluationDisabledReason}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {isReadOnlyMode && (
+              <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                Evaluation mode is read-only. Creating, editing, deleting, and voting actions are disabled.
+              </p>
+            )}
+          </section>
+
+          <div className="mt-4 space-y-3">
               <div className="flex flex-col gap-3 md:flex-row">
                 <input
                   type="text"
@@ -350,11 +462,13 @@ export default function TripRoom() {
                   onChange={(event) => setNewDestinationName(event.target.value)}
                   placeholder="Add destination (e.g. Zurich)"
                   className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  disabled={isReadOnlyMode}
                 />
                 <button
                   type="button"
                   onClick={handleAddDestination}
-                  className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
+                  disabled={isReadOnlyMode}
+                  className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Add Destination
                 </button>
@@ -383,7 +497,6 @@ export default function TripRoom() {
                 ))}
               </div>
             </div>
-          )}
 
         <section className="rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           <h2 className="mb-2 text-xl font-bold text-gray-900">Participants</h2>
@@ -409,12 +522,12 @@ export default function TripRoom() {
               onChange={(event) => setActivityQuery(event.target.value)}
               placeholder="Try museum, hiking, food, nightlife..."
               className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              disabled={selectedDestinationId === null}
+              disabled={selectedDestinationId === null || isReadOnlyMode}
             />
             <button
               type="button"
               onClick={handleSearchActivities}
-              disabled={activityLoading || selectedDestinationId === null}
+              disabled={activityLoading || selectedDestinationId === null || isReadOnlyMode}
               className="rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {activityLoading ? "Searching..." : "Search"}
@@ -458,7 +571,8 @@ export default function TripRoom() {
                   <button
                     type="button"
                     onClick={() => handleSelectActivity(activity)}
-                    className="mt-3 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
+                    disabled={isReadOnlyMode}
+                    className="mt-3 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Add to destination
                   </button>
@@ -489,14 +603,16 @@ export default function TripRoom() {
                         <button
                           type="button"
                           onClick={() => handleRenameActivity(activity)}
-                          className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                          disabled={isReadOnlyMode}
+                          className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Rename
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteActivity(activity)}
-                          className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                          disabled={isReadOnlyMode}
+                          className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Remove
                         </button>
