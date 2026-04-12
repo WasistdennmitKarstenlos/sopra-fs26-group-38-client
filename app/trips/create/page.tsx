@@ -57,7 +57,7 @@ export default function CreateTrip() {
         if (err.status === 409) {
           setFeedback({ type: "error", text: "Trip name already exists. Please choose another name." });
         } else if (err.status === 400) {
-          setFeedback({ type: "error", text: "Invalid trip name. Please provide a valid name." });
+          setFeedback({ type: "error", text: err.message || "Invalid request. Please check your trip data." });
         } else {
           setFeedback({ type: "error", text: err.message || "Failed to create trip. Please try again." });
         }
