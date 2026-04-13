@@ -17,6 +17,7 @@ export default function TripRoom() {
   const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
   const { clear: clearUserId } = useLocalStorage("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
+  const { value: username } = useLocalStorage<string>("username", "");
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -329,6 +330,93 @@ export default function TripRoom() {
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
         <div className="mx-auto w-full max-w-5xl">
 
+          <header className="mb-6 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-gray-200">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <h1 className="text-4xl font-bold leading-tight text-gray-900">
+                    {trip.name ?? "Untitled Trip"}
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={handleCopyRoomCode}
+                    className="group inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-gray-700 hover:bg-gray-50"
+                    aria-label="Copy room code"
+                    title="Copy room code"
+                  >
+                    <span className="text-gray-500">Code:</span>
+                    <span className="font-semibold text-gray-900">{trip.roomCode ?? "—"}</span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="h-4 w-4 text-gray-700 opacity-80 transition group-hover:opacity-100"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M8 7a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-7a3 3 0 0 1-3-3V7Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M16 17v1a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3h1"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-700">
+                  <div className="inline-flex items-center gap-2">
+                    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-gray-500" aria-hidden="true">
+                      <path
+                        d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M6 11c1.66 0 3-1.34 3-3S7.66 5 6 5 3 6.34 3 8s1.34 3 3 3Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M6 13c-2.21 0-4 1.79-4 4v2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M16 13c-2.21 0-4 1.79-4 4v2"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M10 11c1.66 0 3-1.34 3-3S11.66 5 10 5 7 6.34 7 8s1.34 3 3 3Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
+                        {(username?.trim()?.[0] ?? "U").toUpperCase()}
+                      </span>
+                      <span className="font-medium text-gray-900">{username?.trim() || "You"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setFeedback({ type: "success", text: "Final evaluation flow coming soon." })}
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0]"
+              >
+                Start Final Evaluation
+              </button>
+            </div>
+          </header>
+
           {feedback && (
             <p
               className={`mb-4 rounded-md border px-3 py-2 text-sm ${
@@ -384,11 +472,6 @@ export default function TripRoom() {
               </div>
             </div>
           )}
-
-        <section className="rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <h2 className="mb-2 text-xl font-bold text-gray-900">Participants</h2>
-          <p className="text-sm text-gray-600">Participant features coming soon.</p>
-        </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           <h2 className="text-xl font-bold text-gray-900">Activity Search</h2>
