@@ -255,7 +255,7 @@ export default function TripRoom() {
     return (
       <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
         <Sidebar onLogout={handleLogout} />
-        <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
+        <main className="h-screen overflow-y-auto px-2 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div
               className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900"
@@ -286,7 +286,7 @@ export default function TripRoom() {
     <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
       <Sidebar onLogout={handleLogout} />
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="w-full">
 
           <header className="mb-6 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-gray-200">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
