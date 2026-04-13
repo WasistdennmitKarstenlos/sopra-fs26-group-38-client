@@ -123,7 +123,7 @@ export default function TripRoom() {
 
     try {
       const created = await apiService.post<Destination>(destinationListEndpoint, {
-        name: newDestinationName.trim(),
+        destinationName: newDestinationName.trim(),
       });
       setDestinations((current) => [created, ...current]);
       setActivitiesByDestination((current) => ({ ...current, [created.id]: [] }));
@@ -402,7 +402,7 @@ export default function TripRoom() {
                     key={destination.id}
                     className="min-w-[340px] rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
                   >
-                    <h2 className="text-3xl font-bold text-gray-900">{destination.name}</h2>
+                    <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
 
                     <div className="mt-5 space-y-4">
                       {items.length === 0 ? (
