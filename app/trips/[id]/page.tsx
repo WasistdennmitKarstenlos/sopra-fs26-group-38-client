@@ -134,7 +134,7 @@ export default function TripRoom() {
 
     try {
       const created = await apiService.post<Destination>(destinationListEndpoint, {
-        name: newDestinationName.trim(),
+        destinationName: newDestinationName.trim(),
       });
       setDestinations((current) => [created, ...current]);
       setSelectedDestinationId(created.id);
@@ -466,7 +466,7 @@ export default function TripRoom() {
                         : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    {destination.name}
+                    {destination.destinationName}
                   </button>
                 ))}
               </div>
