@@ -170,7 +170,7 @@ export default function DashboardPage() {
         <header className="flex justify-between items-center min-h-14 mb-13">
           <div />
           <div className="flex gap-3.5">
-            <button className="border-none rounded-[10px] px-5 py-3 text-[15px] font-semibold cursor-pointer bg-[#2684ff] text-white" type="button">
+            <button className="border-none rounded-[10px] px-5 py-3 text-[15px] font-semibold cursor-pointer bg-[#2684ff] text-white" type="button" onClick={() => router.push("/trips/join")}>
               Join Trip
             </button>
             <button
