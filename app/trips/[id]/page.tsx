@@ -9,6 +9,7 @@ import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
 import { Sidebar } from "@/components/Sidebar";
 import { VoteControls } from "@/components/VoteControls";
+import { DestinationVoteControls } from "@/components/DestinationVoteControls";
 
 export default function TripRoom() {
   const router = useRouter();
@@ -242,6 +243,22 @@ export default function TripRoom() {
     );
   }, []);
 
+  const handleDestinationVoteUpdate = useCallback((updatedDestination: Destination) => {
+    setDestinations((current) =>
+      current.map((destination) =>
+        destination.id === updatedDestination.id
+          ? {
+            ...destination,
+            upvotes: updatedDestination.upvotes,
+            downvotes: updatedDestination.downvotes,
+            score: updatedDestination.score,
+            userVote: updatedDestination.userVote,
+          }
+          : destination,
+      ),
+    );
+  }, []);
+
   const handleRenameActivity = useCallback((activity: ActivitySearchResult) => {
     const updateActivity = async () => {
       if (!destinationEndpoint || !activity.id) {
@@ -471,9 +488,11 @@ export default function TripRoom() {
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
           {destinations.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900">Destinations</h3>
+              <h3 className="text-2xl font-semibold text-gray-900">Destinations</h3>
               <div className="mt-4 grid gap-4 xl:grid-cols-3 lg:grid-cols-2 sm:grid-cols-1">
-                {destinations.map((destination) => (
+                {[...destinations]
+                  .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                  .map((destination) => (
                   <div
                     key={destination.id}
                     onClick={() => setSelectedDestinationId(destination.id)}
@@ -484,10 +503,14 @@ export default function TripRoom() {
                     }`}
                   >
                     <div className="mb-4 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700">Destination</p>
+                      <div>                        
                         <h4 className="text-xl font-bold text-gray-900">{destination.destinationName}</h4>
                       </div>
+                      <DestinationVoteControls
+                        tripId={trip.id ?? ""}
+                        destination={destination}
+                        onVoteUpdate={handleDestinationVoteUpdate}
+                      />
                     </div>
                     <div className="space-y-3">
                       {(destination.activities ?? []).length === 0 ? (
