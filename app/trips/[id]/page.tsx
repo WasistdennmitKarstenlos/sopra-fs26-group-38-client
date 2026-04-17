@@ -259,6 +259,14 @@ export default function TripRoom() {
     );
   }, []);
 
+  const handleVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
+
+  const handleDestinationVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
+
   const handleRenameActivity = useCallback((activity: ActivitySearchResult) => {
     const updateActivity = async () => {
       if (!destinationEndpoint || !activity.id) {
@@ -510,6 +518,7 @@ export default function TripRoom() {
                         tripId={trip.id ?? ""}
                         destination={destination}
                         onVoteUpdate={handleDestinationVoteUpdate}
+                        onError={handleDestinationVoteError}
                       />
                     </div>
                     <div className="space-y-3">
@@ -555,7 +564,7 @@ export default function TripRoom() {
                                   </button>
                                 </div>
                                 <div className="mt-3">
-                                  <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} />
+                                  <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
                                 </div>
                               </div>
                             </div>

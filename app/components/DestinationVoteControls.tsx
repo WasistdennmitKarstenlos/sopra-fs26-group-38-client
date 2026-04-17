@@ -8,12 +8,14 @@ interface DestinationVoteControlsProps {
   tripId: number | string;
   destination: Destination;
   onVoteUpdate: (updatedDestination: Destination) => void;
+  onError?: (error: string) => void;
 }
 
 export function DestinationVoteControls({
   tripId,
   destination,
   onVoteUpdate,
+  onError,
 }: DestinationVoteControlsProps) {
   const apiService = useApi();
   const [isVoting, setIsVoting] = useState(false);
@@ -39,6 +41,7 @@ export function DestinationVoteControls({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to vote";
       setError(errorMessage);
+      onError?.(errorMessage);
     } finally {
       setIsVoting(false);
     }

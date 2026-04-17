@@ -7,9 +7,10 @@ import { useApi } from "@/hooks/useApi";
 interface VoteControlsProps {
   activity: ActivitySearchResult;
   onVoteUpdate: (updatedActivity: ActivitySearchResult) => void;
+  onError?: (error: string) => void;
 }
 
-export function VoteControls({ activity, onVoteUpdate }: VoteControlsProps) {
+export function VoteControls({ activity, onVoteUpdate, onError }: VoteControlsProps) {
   const apiService = useApi();
   const [isVoting, setIsVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +22,13 @@ export function VoteControls({ activity, onVoteUpdate }: VoteControlsProps) {
     setError(null);
 
     try {
-      const response = await apiService.voteOnActivity(activity.id, voteType);
+      const response = (await apiService.voteOnActivity(activity.id, voteType)) as {
+        activityId: number;
+        upvotes: number;
+        downvotes: number;
+        score: number;
+        userVote: "UP" | "DOWN" | null;
+      };
 
       // Update the activity with the new vote data
       const updatedActivity: ActivitySearchResult = {
@@ -36,6 +43,7 @@ export function VoteControls({ activity, onVoteUpdate }: VoteControlsProps) {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to vote";
       setError(errorMessage);
+      onError?.(errorMessage);
     } finally {
       setIsVoting(false);
     }
