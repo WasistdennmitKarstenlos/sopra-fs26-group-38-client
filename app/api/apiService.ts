@@ -145,4 +145,14 @@ export class ApiService {
       "An error occurred while deleting the data.\n",
     );
   }
+
+  /**
+   * Vote on an activity.
+   * @param activityId - The ID of the activity to vote on.
+   * @param voteType - "UP" or "DOWN".
+   * @returns Updated vote data.
+   */
+  public async voteOnActivity(activityId: number, voteType: "UP" | "DOWN") {
+    return this.put(`/activities/${activityId}/vote`, { voteType });
+  }
 }
