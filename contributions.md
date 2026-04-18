@@ -92,8 +92,8 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
 |              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/46b747213062494db7ef1efa49be3a50ddfdd0c8 | Replace create trip page with modal | Done to match the design in Figma. |
 |              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/71) | Voting system Frontend integration| The User sees wich are the best scored destinations/activities |
+|  | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/153) | Voting System backend integration | The User can upvote and downvote on destinations and activities |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/70/changes/b1bc95b | Implementation of join page, aswell as validation in the frontend| Joining trips is a central function of the webApp |
 |  | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/152/changes/23669a4 | add join trip endpoint with validation and membership rules in the backend | to ensure that the right trip is joined and that every member has a different tripname |
 
