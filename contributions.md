@@ -73,10 +73,10 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 |              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/2b6eacdd386405f279f76228657eea62ce8983c7 | BE: Resolve DTO Mapping responsibilities for Activity | Handling the TO Mapping is a job for the controller. Moved this functionality to DestinationController and ActivityController respectively. |
 |              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/fa74e53281487c1d4d82ad7ba63da0b57b5fc013 | BE: Store Google Maps API Key in Application Properties | Safe handling for the API key to protect it from abuse. |
 |              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/17e5648e270c5a59c3bb1806861b7ade120b86cd | BE: Return Activities as children of Destination objects in stream and static endpoint | To display the activities, they need to be returned somewhere. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-04-02 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/55/changes/06c214a6162d68fda999a283fe16eeda86815ac0) | Implementing tailwind and changing old design files from ant to tailwind | The implementation of tailwind makes it much easier to use layouts of the different pages |
 |  | Jean Leon Keim | 2026-04-12 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/63/changes/87f1e52cc205e26c0c12cc3d517fc31013b669aa) | remevoed mock data, dashboard/page.tx now imports data from the backend | The mock data was just there to see functionality ath the beginning |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/57 | Fixing Register and Login page | It handles Errors, makes the sites more beautiful and improves the flow |
+|  | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/132 | Tests for login/logout and improve some some small stuff | To make sure everything works as intended in the backend |
 ---
 
 ## Contributions Week 3 - April 13, 2026 to April 20, 2026
@@ -90,14 +90,12 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
-              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/46b747213062494db7ef1efa49be3a50ddfdd0c8 | Replace create trip page with modal | Done to match the design in Figma. |
-              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
-
-
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+|              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/46b747213062494db7ef1efa49be3a50ddfdd0c8 | Replace create trip page with modal | Done to match the design in Figma. |
+|              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/71) | Voting system Frontend integration| The User sees wich are the best scored destinations/activities |
+|  | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/153) | Voting System backend integration | The User can upvote and downvote on destinations and activities |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/70/changes/b1bc95b | Implementation of join page, aswell as validation in the frontend| Joining trips is a central function of the webApp |
+|  | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/152/changes/23669a4 | add join trip endpoint with validation and membership rules in the backend | to ensure that the right trip is joined and that every member has a different tripname |
 
 ---
 
