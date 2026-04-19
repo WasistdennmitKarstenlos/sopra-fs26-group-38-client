@@ -1,5 +1,6 @@
 import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
+import { ActivitySearchResult } from "@/types/activity";
 
 export class ApiService {
   private baseURL: string;
@@ -154,6 +155,19 @@ export class ApiService {
    */
   public async voteOnActivity(activityId: number, voteType: "UP" | "DOWN") {
     return this.put(`/activities/${activityId}/vote`, { voteType });
+  }
+
+  /**
+   * Update a comment on an activity.
+   * @param activityId - The ID of the activity to comment on.
+   * @param comment - The comment text to save.
+   * @returns Updated activity payload.
+   */
+  public async updateActivityComment(
+    activityId: number,
+    comment: string | null,
+  ): Promise<ActivitySearchResult> {
+    return this.put<ActivitySearchResult>(`/activities/${activityId}/comment`, { comment });
   }
 
   /**
