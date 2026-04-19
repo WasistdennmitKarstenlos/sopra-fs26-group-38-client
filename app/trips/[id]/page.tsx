@@ -8,6 +8,8 @@ import { ActivitySearchResult } from "@/types/activity";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
 import { Sidebar } from "@/components/Sidebar";
+import { VoteControls } from "@/components/VoteControls";
+import { DestinationVoteControls } from "@/components/DestinationVoteControls";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 
 export default function TripRoom() {
@@ -251,6 +253,44 @@ export default function TripRoom() {
     [activityModalDestinationId, apiService, getActivitiesEndpoint, token],
   );
 
+  const handleVoteUpdate = useCallback((updatedActivity: ActivitySearchResult) => {
+    if (!updatedActivity.id) return;
+    setActivitiesByDestination((current) => {
+      const next = { ...current };
+      Object.keys(next).forEach((destinationId) => {
+        const parsedDestinationId = Number(destinationId);
+        next[parsedDestinationId] = (next[parsedDestinationId] ?? []).map((activity) =>
+          activity.id === updatedActivity.id ? updatedActivity : activity,
+        );
+      });
+      return next;
+    });
+  }, []);
+
+  const handleDestinationVoteUpdate = useCallback((updatedDestination: Destination) => {
+    setDestinations((current) =>
+      current.map((destination) =>
+        destination.id === updatedDestination.id
+          ? {
+              ...destination,
+              upvotes: updatedDestination.upvotes,
+              downvotes: updatedDestination.downvotes,
+              score: updatedDestination.score,
+              userVote: updatedDestination.userVote,
+            }
+          : destination,
+      ),
+    );
+  }, []);
+
+  const handleVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
+
+  const handleDestinationVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
+
   if (loading) {
     return (
       <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
@@ -395,22 +435,34 @@ export default function TripRoom() {
                 </div>
               )}
 
-              {!destinationLoading && destinations.map((destination) => {
+              {!destinationLoading && [...destinations]
+                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                .map((destination) => {
                 const items = activitiesByDestination[destination.id] ?? [];
                 return (
                   <div
                     key={destination.id}
                     className="min-w-[340px] rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
                   >
-                    <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
+                    <div className="flex items-start justify-between gap-3">
+                      <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
+                      <DestinationVoteControls
+                        tripId={trip.id ?? ""}
+                        destination={destination}
+                        onVoteUpdate={handleDestinationVoteUpdate}
+                        onError={handleDestinationVoteError}
+                      />
+                    </div>
 
                     <div className="mt-5 space-y-4">
                       {items.length === 0 ? (
                         <p className="text-sm text-gray-600">No events yet.</p>
                       ) : (
-                        items.map((activity) => (
+                        [...items]
+                          .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                          .map((activity) => (
                           <article
-                            key={activity.placeId ?? `${activity.name}-${activity.address}`}
+                            key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
                             className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
                           >
                             {activity.photoUrl ? (
@@ -429,6 +481,9 @@ export default function TripRoom() {
                               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
                                 {activity.rating !== null && <span>Rating: {activity.rating}</span>}
                                 {activity.address && <span className="truncate">{activity.address}</span>}
+                              </div>
+                              <div className="mt-3">
+                                <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
                               </div>
                             </div>
                           </article>

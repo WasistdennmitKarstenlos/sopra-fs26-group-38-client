@@ -90,8 +90,10 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
-|              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/46b747213062494db7ef1efa49be3a50ddfdd0c8 | Replace create trip page with modal | Done to match the design in Figma. |
-|              | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
+|             | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/46b747213062494db7ef1efa49be3a50ddfdd0c8 | Replace create trip page with modal | Done to match the design in Figma. |
+|             | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
+|             | Joel Marc Dickey | 2026-04-13 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/ab18064757902a6c4aff7302d155d4f11a6eaa3d | Update Header to display invite code. | Provide the room code in frontend so people can invite others to join a room. |
+|             | Joel Marc Dickey | 2026-04-13 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/72c6072e7de1eb57d7d6914558543e669b907d36 | Create destination column design in trip room. | Create view that displays the destinations and allows for adding activities to them. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/71) | Voting system Frontend integration| The User sees wich are the best scored destinations/activities |
 |  | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/153) | Voting System backend integration | The User can upvote and downvote on destinations and activities |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/70/changes/b1bc95b | Implementation of join page, aswell as validation in the frontend| Joining trips is a central function of the webApp |
@@ -109,8 +111,9 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 |  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@3xpr]** | Joel Marc Dickey | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Joel Marc Dickey | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@3xpr]** | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/548e3cccb23a826830495134eb6c2e9ba7b7df24 | Calculate Score for Desintaionts based on activities | Done to align implementation with user stories. |
+|             | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/3b6b9db27a8dabf6a14311d8b14bbd3a56d59c3a | Refine Design to match Figma | Done to match the design in Figma. |
+|             | Joel Marc Dickey | 2026-04-19 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/6c273102a555d36c8c942e6c833bd1a303c1beb2 | Update stream on new activity and on new vote | Needed for live updating and collaboration. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
