@@ -9,8 +9,74 @@ import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
 import { Sidebar } from "@/components/Sidebar";
 import { VoteControls } from "@/components/VoteControls";
-import { DestinationVoteControls } from "@/components/DestinationVoteControls";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { getApiDomain } from "@/utils/domain";
+
+type StreamEvent = {
+  event?: string;
+  data: string;
+};
+
+const realtimeEndpoints = (tripId: string) => [
+  `/trips/${tripId}/stream`,
+  `/trips/${tripId}/destinations/stream`,
+  `/trips/${tripId}/activities/stream`,
+];
+
+async function readStreamEvents(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+  onEvent: (event: StreamEvent) => void,
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (!signal.aborted) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      buffer = buffer.replace(/\r\n/g, "\n");
+
+      let eventSeparatorIndex = buffer.indexOf("\n\n");
+      while (eventSeparatorIndex !== -1) {
+        const rawEvent = buffer.slice(0, eventSeparatorIndex);
+        buffer = buffer.slice(eventSeparatorIndex + 2);
+
+        const lines = rawEvent.split("\n");
+        let eventName: string | undefined;
+        const dataLines: string[] = [];
+
+        lines.forEach((line) => {
+          if (line.startsWith(":")) {
+            return;
+          }
+
+          if (line.startsWith("event:")) {
+            eventName = line.slice(6).trim();
+            return;
+          }
+
+          if (line.startsWith("data:")) {
+            dataLines.push(line.slice(5).trimStart());
+          }
+        });
+
+        if (dataLines.length > 0) {
+          onEvent({ event: eventName, data: dataLines.join("\n") });
+        }
+
+        eventSeparatorIndex = buffer.indexOf("\n\n");
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 
 export default function TripRoom() {
   const router = useRouter();
@@ -48,6 +114,40 @@ export default function TripRoom() {
     [trip?.id],
   );
 
+  const fetchTrip = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!tokenReady || !token || !tripId) return;
+
+      try {
+        if (!silent) {
+          setLoading(true);
+        }
+
+        const response = await apiService.get<Trip>(`/trips/${tripId}`);
+        if (response) {
+          setTrip(response);
+        }
+      } catch (error) {
+        if (silent) {
+          return;
+        }
+
+        const err = error as Error & { status?: number };
+        if (err.status === 404) {
+          setFeedback({ type: "error", text: "Trip room not found." });
+          router.push("/users");
+        } else {
+          setFeedback({ type: "error", text: "Failed to load trip. Please try again." });
+        }
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [apiService, router, token, tokenReady, tripId],
+  );
+
   // Check if user is logged in (only after localStorage rehydration to avoid a false redirect)
   useEffect(() => {
     if (!tokenReady) return;
@@ -57,32 +157,9 @@ export default function TripRoom() {
     }
   }, [tokenReady, token, router]);
 
-  // Fetch trip details
   useEffect(() => {
-    if (!tokenReady || !token || !tripId) return;
-
-    const fetchTrip = async () => {
-      try {
-        setLoading(true);
-        const response = await apiService.get<Trip>(`/trips/${tripId}`);
-        if (response) {
-          setTrip(response);
-        }
-      } catch (error) {
-        const err = error as Error & { status?: number };
-        if (err.status === 404) {
-          setFeedback({ type: "error", text: "Trip room not found." });
-          router.push("/users");
-        } else {
-          setFeedback({ type: "error", text: "Failed to load trip. Please try again." });
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTrip();
-  }, [tokenReady, token, tripId, apiService, router]);
+    void fetchTrip();
+  }, [fetchTrip]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {
@@ -91,26 +168,109 @@ export default function TripRoom() {
     }
   }, [trip?.roomCode]);
 
-  const fetchDestinations = useCallback(async () => {
+  const fetchDestinations = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!destinationListEndpoint || !token) {
       setDestinations([]);
       return;
     }
 
     try {
-      setDestinationLoading(true);
+      if (!silent) {
+        setDestinationLoading(true);
+      }
+
       const data = await apiService.get<Destination[]>(destinationListEndpoint);
       setDestinations(data);
+      setActivitiesByDestination((current) => {
+        const next: Record<number, ActivitySearchResult[]> = {};
+
+        data.forEach((destination) => {
+          next[destination.id] = current[destination.id] ?? [];
+        });
+
+        return next;
+      });
     } catch {
-      setDestinations([]);
+      if (!silent) {
+        setDestinations([]);
+      }
     } finally {
-      setDestinationLoading(false);
+      if (!silent) {
+        setDestinationLoading(false);
+      }
     }
   }, [apiService, destinationListEndpoint, token]);
 
   useEffect(() => {
     void fetchDestinations();
   }, [fetchDestinations]);
+
+  useEffect(() => {
+    if (!tokenReady || !token || !tripId || !destinationListEndpoint) return;
+
+    const abortController = new AbortController();
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "text/event-stream",
+    };
+
+    const refreshFromStream = () => {
+      void fetchTrip({ silent: true });
+      void fetchDestinations({ silent: true });
+    };
+
+    const connect = async () => {
+      while (!abortController.signal.aborted) {
+        let connected = false;
+
+        for (const endpoint of realtimeEndpoints(tripId)) {
+          try {
+            const response = await fetch(`${getApiDomain()}${endpoint}`, {
+              method: "GET",
+              headers,
+              signal: abortController.signal,
+              cache: "no-store",
+            });
+
+            const contentType = response.headers.get("Content-Type") ?? "";
+            if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+              continue;
+            }
+
+            connected = true;
+            await readStreamEvents(response.body, abortController.signal, () => {
+              refreshFromStream();
+            });
+            break;
+          } catch {
+            if (abortController.signal.aborted) {
+              return;
+            }
+          }
+        }
+
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (!connected) {
+          await new Promise<void>((resolve) => {
+            reconnectTimer = setTimeout(resolve, 3000);
+          });
+        }
+      }
+    };
+
+    void connect();
+
+    return () => {
+      abortController.abort();
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+    };
+  }, [destinationListEndpoint, fetchDestinations, fetchTrip, token, tokenReady, tripId]);
 
   const handleAddDestination = useCallback(async () => {
     if (!destinationListEndpoint) {
@@ -267,27 +427,7 @@ export default function TripRoom() {
     });
   }, []);
 
-  const handleDestinationVoteUpdate = useCallback((updatedDestination: Destination) => {
-    setDestinations((current) =>
-      current.map((destination) =>
-        destination.id === updatedDestination.id
-          ? {
-              ...destination,
-              upvotes: updatedDestination.upvotes,
-              downvotes: updatedDestination.downvotes,
-              score: updatedDestination.score,
-              userVote: updatedDestination.userVote,
-            }
-          : destination,
-      ),
-    );
-  }, []);
-
   const handleVoteError = useCallback((error: string) => {
-    setFeedback({ type: "error", text: error });
-  }, []);
-
-  const handleDestinationVoteError = useCallback((error: string) => {
     setFeedback({ type: "error", text: error });
   }, []);
 
@@ -430,7 +570,7 @@ export default function TripRoom() {
           <section className="mt-6">
             <div className="flex gap-7 overflow-x-auto pb-4">
               {destinationLoading && (
-                <div className="min-w-[340px] rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                   <p className="text-sm text-gray-600">Loading destinations...</p>
                 </div>
               )}
@@ -442,16 +582,16 @@ export default function TripRoom() {
                 return (
                   <div
                     key={destination.id}
-                    className="min-w-[340px] rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
+                    className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
-                      <DestinationVoteControls
-                        tripId={trip.id ?? ""}
-                        destination={destination}
-                        onVoteUpdate={handleDestinationVoteUpdate}
-                        onError={handleDestinationVoteError}
-                      />
+                      <div className="min-w-0">
+                        <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
+                        <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                      </div>
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                        Score {destination.score ?? 0}
+                      </span>
                     </div>
 
                     <div className="mt-5 space-y-4">
@@ -502,7 +642,7 @@ export default function TripRoom() {
                 );
               })}
 
-              <div className="min-w-[340px] rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                 <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
                 <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
                 <div className="mt-4">
