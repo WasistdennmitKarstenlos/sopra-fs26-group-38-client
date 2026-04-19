@@ -85,8 +85,8 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-04-19 | [c99725c](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/c99725c) | US-10 frontend integration: real-time destination/activity refresh via SSE streams | Keeps trip room state synchronized across clients by refreshing trip and destination activity data when stream events arrive |
+|  | Ajay Sathish Shenoy | 2026-04-19 | [b7ded8c](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/b7ded8c) | US-10 activity search enhancement: optional location and radius filters in modal | Improves search precision and directly maps frontend inputs to backend US-10 search parameters for better activity discovery |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9f8da9862464c07dfe44c5c6412c9065bf3a8d3f | Automatic Redirect based on Token existence | Clean Login flow |
