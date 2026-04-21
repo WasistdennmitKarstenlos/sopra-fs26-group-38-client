@@ -7,6 +7,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
+import { LocationPicker } from "@/components/LocationPicker";
 import { Sidebar } from "@/components/Sidebar";
 import { VoteControls } from "@/components/VoteControls";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
@@ -104,7 +105,8 @@ export default function TripRoom() {
   const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
   const [activityQuery, setActivityQuery] = useState("");
   const [activityLocation, setActivityLocation] = useState("");
-  const [activityRadius, setActivityRadius] = useState("");
+  const [activityLocationCoords, setActivityLocationCoords] = useState("");
+  const [activityRadius, setActivityRadius] = useState("2");
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -345,18 +347,19 @@ export default function TripRoom() {
       setActivityFeedback(null);
       const params = new URLSearchParams({ query: activityQuery.trim() });
 
-      if (activityLocation.trim()) {
-        params.set("location", activityLocation.trim());
+      const locationParam = activityLocationCoords.trim() || activityLocation.trim();
+      if (locationParam) {
+        params.set("location", locationParam);
       }
 
       if (activityRadius.trim()) {
-        const radiusNumber = Number(activityRadius);
-        if (!Number.isFinite(radiusNumber) || radiusNumber <= 0) {
+        const radiusKm = Number(activityRadius);
+        if (!Number.isFinite(radiusKm) || radiusKm <= 0) {
           setActivityFeedback({ type: "error", text: "Radius must be a positive number." });
           setActivityLoading(false);
           return;
         }
-        params.set("radius", String(Math.round(radiusNumber)));
+        params.set("radius", String(Math.round(radiusKm * 1000)));
       }
 
       const results = await apiService.get<ActivitySearchResult[]>(
@@ -379,6 +382,7 @@ export default function TripRoom() {
     }
   }, [
     activityLocation,
+    activityLocationCoords,
     activityModalDestinationId,
     activityQuery,
     activityRadius,
@@ -415,7 +419,8 @@ export default function TripRoom() {
     setActivityModalOpen(true);
     setActivityQuery("");
     setActivityLocation("");
-    setActivityRadius("");
+    setActivityLocationCoords("");
+    setActivityRadius("2");
     setActivityResults(null);
     setActivityFeedback(null);
   }, []);
@@ -425,7 +430,8 @@ export default function TripRoom() {
     setActivityModalDestinationId(null);
     setActivityQuery("");
     setActivityLocation("");
-    setActivityRadius("");
+    setActivityLocationCoords("");
+    setActivityRadius("2");
     setActivityResults(null);
     setActivityFeedback(null);
     setActivityLoading(false);
@@ -755,22 +761,27 @@ export default function TripRoom() {
                   />
 
                   <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-                    <input
-                      type="text"
+                    <LocationPicker
                       value={activityLocation}
-                      onChange={(event) => setActivityLocation(event.target.value)}
+                      onChange={(display, coords) => {
+                        setActivityLocation(display);
+                        setActivityLocationCoords(coords);
+                      }}
                       placeholder="Optional location (e.g. Zurich)"
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     />
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={activityRadius}
-                      onChange={(event) => setActivityRadius(event.target.value)}
-                      placeholder="Radius (meters)"
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={activityRadius}
+                        onChange={(event) => setActivityRadius(event.target.value)}
+                        placeholder="2"
+                        className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">km</span>
+                    </div>
                     <button
                       type="button"
                       onClick={handleSearchActivities}
