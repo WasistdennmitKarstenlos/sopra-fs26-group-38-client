@@ -97,6 +97,8 @@ export default function TripRoom() {
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
   const [activityQuery, setActivityQuery] = useState("");
+  const [activityLocation, setActivityLocation] = useState("");
+  const [activityRadius, setActivityRadius] = useState("");
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -320,8 +322,24 @@ export default function TripRoom() {
     try {
       setActivityLoading(true);
       setActivityFeedback(null);
+      const params = new URLSearchParams({ query: activityQuery.trim() });
+
+      if (activityLocation.trim()) {
+        params.set("location", activityLocation.trim());
+      }
+
+      if (activityRadius.trim()) {
+        const radiusNumber = Number(activityRadius);
+        if (!Number.isFinite(radiusNumber) || radiusNumber <= 0) {
+          setActivityFeedback({ type: "error", text: "Radius must be a positive number." });
+          setActivityLoading(false);
+          return;
+        }
+        params.set("radius", String(Math.round(radiusNumber)));
+      }
+
       const results = await apiService.get<ActivitySearchResult[]>(
-        `${endpoint}?query=${encodeURIComponent(activityQuery.trim())}`,
+        `${endpoint}?${params.toString()}`,
       );
       setActivityResults(results);
       setActivityFeedback(
@@ -338,7 +356,15 @@ export default function TripRoom() {
     } finally {
       setActivityLoading(false);
     }
-  }, [activityModalDestinationId, activityQuery, apiService, getActivitiesEndpoint, trip?.id]);
+  }, [
+    activityLocation,
+    activityModalDestinationId,
+    activityQuery,
+    activityRadius,
+    apiService,
+    getActivitiesEndpoint,
+    trip?.id,
+  ]);
 
   const fetchActivitiesForDestination = useCallback(
     async (destinationId: number) => {
@@ -367,6 +393,8 @@ export default function TripRoom() {
     setActivityModalDestinationId(destinationId);
     setActivityModalOpen(true);
     setActivityQuery("");
+    setActivityLocation("");
+    setActivityRadius("");
     setActivityResults(null);
     setActivityFeedback(null);
   }, []);
@@ -375,6 +403,8 @@ export default function TripRoom() {
     setActivityModalOpen(false);
     setActivityModalDestinationId(null);
     setActivityQuery("");
+    setActivityLocation("");
+    setActivityRadius("");
     setActivityResults(null);
     setActivityFeedback(null);
     setActivityLoading(false);
@@ -673,22 +703,41 @@ export default function TripRoom() {
                 <DialogTitle className="text-lg font-semibold text-gray-900">Add an event</DialogTitle>
                 <p className="mt-1 text-sm text-gray-600">Search for an activity and add it to this destination.</p>
 
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-4 flex flex-col gap-3">
                   <input
                     type="text"
                     value={activityQuery}
                     onChange={(event) => setActivityQuery(event.target.value)}
                     placeholder="Try museum, hiking, food..."
-                    className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
-                  <button
-                    type="button"
-                    onClick={handleSearchActivities}
-                    disabled={activityLoading}
-                    className="rounded-lg bg-[#2684ff] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {activityLoading ? "Searching..." : "Search"}
-                  </button>
+
+                  <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+                    <input
+                      type="text"
+                      value={activityLocation}
+                      onChange={(event) => setActivityLocation(event.target.value)}
+                      placeholder="Optional location (e.g. Zurich)"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={activityRadius}
+                      onChange={(event) => setActivityRadius(event.target.value)}
+                      placeholder="Radius (meters)"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSearchActivities}
+                      disabled={activityLoading}
+                      className="rounded-lg bg-[#2684ff] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {activityLoading ? "Searching..." : "Search"}
+                    </button>
+                  </div>
                 </div>
 
                 {activityFeedback && (
