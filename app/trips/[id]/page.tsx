@@ -78,16 +78,22 @@ async function readStreamEvents(
   }
 }
 
+interface TripParticipant {
+  userId: number;
+  roomUsername: string;
+}
+
 export default function TripRoom() {
   const router = useRouter();
   const params = useParams();
   const tripId = params.id as string;
   const apiService = useApi();
   const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
-  const { clear: clearUserId } = useLocalStorage("userId", "");
+  const { value: currentUserId, clear: clearUserId } = useLocalStorage<string>("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
   const { value: username } = useLocalStorage<string>("username", "");
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -162,6 +168,21 @@ export default function TripRoom() {
   useEffect(() => {
     void fetchTrip();
   }, [fetchTrip]);
+
+  useEffect(() => {
+    if (!tokenReady || !token || !tripId) return;
+
+    const fetchParticipants = async () => {
+      try {
+        const response = await apiService.get<TripParticipant[]>(`/trips/${tripId}/participants`);
+        setParticipants(response ?? []);
+      } catch {
+        setParticipants([]);
+      }
+    };
+
+    fetchParticipants();
+  }, [tokenReady, token, tripId, apiService]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {
@@ -461,6 +482,16 @@ export default function TripRoom() {
     setFeedback({ type: "error", text: error });
   }, []);
 
+  const handleDestinationVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
+
+  const participantItems = participants.length > 0
+    ? participants
+    : username?.trim()
+      ? [{ userId: Number(currentUserId || 0), roomUsername: username.trim() }]
+      : [];
+
   if (loading) {
     return (
       <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
@@ -565,11 +596,22 @@ export default function TripRoom() {
                         strokeWidth="2"
                       />
                     </svg>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
-                        {(username?.trim()?.[0] ?? "U").toUpperCase()}
-                      </span>
-                      <span className="font-medium text-gray-900">{username?.trim() || "You"}</span>
+                    <span className="text-gray-500">Participants</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {participantItems.map((participant) => {
+                        const isCurrentUser = String(participant.userId) === String(currentUserId);
+                        return (
+                          <div key={`${participant.userId}-${participant.roomUsername}`} className="flex items-center gap-2">
+                            <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
+                              {(participant.roomUsername?.trim()?.[0] ?? "U").toUpperCase()}
+                            </span>
+                            <span className="font-medium text-gray-900">{participant.roomUsername}</span>
+                            {isCurrentUser && (
+                              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">You</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
