@@ -7,6 +7,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
+import { LocationPicker } from "@/components/LocationPicker";
 import { Sidebar } from "@/components/Sidebar";
 import { VoteControls } from "@/components/VoteControls";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
@@ -104,6 +105,7 @@ export default function TripRoom() {
   const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
   const [activityQuery, setActivityQuery] = useState("");
   const [activityLocation, setActivityLocation] = useState("");
+  const [activityLocationCoords, setActivityLocationCoords] = useState("");
   const [activityRadius, setActivityRadius] = useState("");
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -345,8 +347,9 @@ export default function TripRoom() {
       setActivityFeedback(null);
       const params = new URLSearchParams({ query: activityQuery.trim() });
 
-      if (activityLocation.trim()) {
-        params.set("location", activityLocation.trim());
+      const locationParam = activityLocationCoords.trim() || activityLocation.trim();
+      if (locationParam) {
+        params.set("location", locationParam);
       }
 
       if (activityRadius.trim()) {
@@ -379,6 +382,7 @@ export default function TripRoom() {
     }
   }, [
     activityLocation,
+    activityLocationCoords,
     activityModalDestinationId,
     activityQuery,
     activityRadius,
@@ -415,6 +419,7 @@ export default function TripRoom() {
     setActivityModalOpen(true);
     setActivityQuery("");
     setActivityLocation("");
+    setActivityLocationCoords("");
     setActivityRadius("");
     setActivityResults(null);
     setActivityFeedback(null);
@@ -425,6 +430,7 @@ export default function TripRoom() {
     setActivityModalDestinationId(null);
     setActivityQuery("");
     setActivityLocation("");
+    setActivityLocationCoords("");
     setActivityRadius("");
     setActivityResults(null);
     setActivityFeedback(null);
@@ -755,10 +761,12 @@ export default function TripRoom() {
                   />
 
                   <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-                    <input
-                      type="text"
+                    <LocationPicker
                       value={activityLocation}
-                      onChange={(event) => setActivityLocation(event.target.value)}
+                      onChange={(display, coords) => {
+                        setActivityLocation(display);
+                        setActivityLocationCoords(coords);
+                      }}
                       placeholder="Optional location (e.g. Zurich)"
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     />
