@@ -145,4 +145,29 @@ export class ApiService {
       "An error occurred while deleting the data.\n",
     );
   }
+
+  /**
+   * Vote on an activity.
+   * @param activityId - The ID of the activity to vote on.
+   * @param voteType - "UP" or "DOWN".
+   * @returns Updated vote data.
+   */
+  public async voteOnActivity(activityId: number, voteType: "UP" | "DOWN") {
+    return this.put(`/activities/${activityId}/vote`, { voteType });
+  }
+
+  /**
+   * Vote on a destination.
+   * @param tripId - The trip ID.
+   * @param destinationId - The ID of the destination to vote on.
+   * @param voteType - "UP" or "DOWN".
+   * @returns Updated destination vote data.
+   */
+  public async voteOnDestination(
+    tripId: number | string,
+    destinationId: number,
+    voteType: "UP" | "DOWN",
+  ): Promise<{ destinationId: number; upvotes: number; downvotes: number; score: number; userVote: "UP" | "DOWN" | null }> {
+    return this.put(`/trips/${tripId}/destinations/${destinationId}/vote`, { voteType });
+  }
 }

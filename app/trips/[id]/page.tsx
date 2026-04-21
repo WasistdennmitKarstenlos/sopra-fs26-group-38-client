@@ -8,6 +8,80 @@ import { ActivitySearchResult } from "@/types/activity";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
 import { Sidebar } from "@/components/Sidebar";
+import { VoteControls } from "@/components/VoteControls";
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { getApiDomain } from "@/utils/domain";
+
+type StreamEvent = {
+  event?: string;
+  data: string;
+};
+
+const realtimeEndpoints = (tripId: string) => [
+  `/trips/${tripId}/stream`,
+  `/trips/${tripId}/destinations/stream`,
+  `/trips/${tripId}/activities/stream`,
+];
+
+async function readStreamEvents(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+  onEvent: (event: StreamEvent) => void,
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (!signal.aborted) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      buffer = buffer.replace(/\r\n/g, "\n");
+
+      let eventSeparatorIndex = buffer.indexOf("\n\n");
+      while (eventSeparatorIndex !== -1) {
+        const rawEvent = buffer.slice(0, eventSeparatorIndex);
+        buffer = buffer.slice(eventSeparatorIndex + 2);
+
+        const lines = rawEvent.split("\n");
+        let eventName: string | undefined;
+        const dataLines: string[] = [];
+
+        lines.forEach((line) => {
+          if (line.startsWith(":")) {
+            return;
+          }
+
+          if (line.startsWith("event:")) {
+            eventName = line.slice(6).trim();
+            return;
+          }
+
+          if (line.startsWith("data:")) {
+            dataLines.push(line.slice(5).trimStart());
+          }
+        });
+
+        if (dataLines.length > 0) {
+          onEvent({ event: eventName, data: dataLines.join("\n") });
+        }
+
+        eventSeparatorIndex = buffer.indexOf("\n\n");
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+interface TripParticipant {
+  userId: number;
+  roomUsername: string;
+}
 
 export default function TripRoom() {
   const router = useRouter();
@@ -15,19 +89,23 @@ export default function TripRoom() {
   const tripId = params.id as string;
   const apiService = useApi();
   const { value: token, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
-  const { clear: clearUserId } = useLocalStorage("userId", "");
+  const { value: currentUserId, clear: clearUserId } = useLocalStorage<string>("userId", "");
   const { clear: clearUsername } = useLocalStorage("username", "");
   const { value: username } = useLocalStorage<string>("username", "");
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [selectedDestinationId, setSelectedDestinationId] = useState<number | null>(null);
   const [newDestinationName, setNewDestinationName] = useState("");
   const [destinationLoading, setDestinationLoading] = useState(false);
+  const [activitiesByDestination, setActivitiesByDestination] = useState<Record<number, ActivitySearchResult[]>>({});
+  const [activityModalOpen, setActivityModalOpen] = useState(false);
+  const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
   const [activityQuery, setActivityQuery] = useState("");
+  const [activityLocation, setActivityLocation] = useState("");
+  const [activityRadius, setActivityRadius] = useState("");
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
-  const [selectedActivities, setSelectedActivities] = useState<ActivitySearchResult[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
@@ -38,11 +116,45 @@ export default function TripRoom() {
     router.push("/login");
   }, [clearToken, clearUserId, clearUsername, router]);
 
-  const destinationEndpoint = trip?.id && selectedDestinationId !== null
-    ? `/trips/${trip.id}/destinations/${selectedDestinationId}/activities`
-    : null;
-
   const destinationListEndpoint = trip?.id ? `/trips/${trip.id}/destinations` : null;
+  const getActivitiesEndpoint = useCallback(
+    (destinationId: number) => (trip?.id ? `/trips/${trip.id}/destinations/${destinationId}/activities` : null),
+    [trip?.id],
+  );
+
+  const fetchTrip = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!tokenReady || !token || !tripId) return;
+
+      try {
+        if (!silent) {
+          setLoading(true);
+        }
+
+        const response = await apiService.get<Trip>(`/trips/${tripId}`);
+        if (response) {
+          setTrip(response);
+        }
+      } catch (error) {
+        if (silent) {
+          return;
+        }
+
+        const err = error as Error & { status?: number };
+        if (err.status === 404) {
+          setFeedback({ type: "error", text: "Trip room not found." });
+          router.push("/users");
+        } else {
+          setFeedback({ type: "error", text: "Failed to load trip. Please try again." });
+        }
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [apiService, router, token, tokenReady, tripId],
+  );
 
   // Check if user is logged in (only after localStorage rehydration to avoid a false redirect)
   useEffect(() => {
@@ -53,32 +165,24 @@ export default function TripRoom() {
     }
   }, [tokenReady, token, router]);
 
-  // Fetch trip details
+  useEffect(() => {
+    void fetchTrip();
+  }, [fetchTrip]);
+
   useEffect(() => {
     if (!tokenReady || !token || !tripId) return;
 
-    const fetchTrip = async () => {
+    const fetchParticipants = async () => {
       try {
-        setLoading(true);
-        const response = await apiService.get<Trip>(`/trips/${tripId}`);
-        if (response) {
-          setTrip(response);
-        }
-      } catch (error) {
-        const err = error as Error & { status?: number };
-        if (err.status === 404) {
-          setFeedback({ type: "error", text: "Trip room not found." });
-          router.push("/users");
-        } else {
-          setFeedback({ type: "error", text: "Failed to load trip. Please try again." });
-        }
-      } finally {
-        setLoading(false);
+        const response = await apiService.get<TripParticipant[]>(`/trips/${tripId}/participants`);
+        setParticipants(response ?? []);
+      } catch {
+        setParticipants([]);
       }
     };
 
-    fetchTrip();
-  }, [tokenReady, token, tripId, apiService, router]);
+    fetchParticipants();
+  }, [tokenReady, token, tripId, apiService]);
 
   const handleCopyRoomCode = useCallback(() => {
     if (trip?.roomCode) {
@@ -87,39 +191,109 @@ export default function TripRoom() {
     }
   }, [trip?.roomCode]);
 
-  const fetchDestinations = useCallback(async () => {
+  const fetchDestinations = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
     if (!destinationListEndpoint || !token) {
       setDestinations([]);
-      setSelectedDestinationId(null);
       return;
     }
 
     try {
-      setDestinationLoading(true);
+      if (!silent) {
+        setDestinationLoading(true);
+      }
+
       const data = await apiService.get<Destination[]>(destinationListEndpoint);
       setDestinations(data);
+      setActivitiesByDestination((current) => {
+        const next: Record<number, ActivitySearchResult[]> = {};
 
-      if (data.length === 0) {
-        setSelectedDestinationId(null);
-      } else {
-        setSelectedDestinationId((current) => {
-          if (current !== null && data.some((destination) => destination.id === current)) {
-            return current;
-          }
-          return data[0].id;
+        data.forEach((destination) => {
+          next[destination.id] = current[destination.id] ?? [];
         });
-      }
+
+        return next;
+      });
     } catch {
-      setDestinations([]);
-      setSelectedDestinationId(null);
+      if (!silent) {
+        setDestinations([]);
+      }
     } finally {
-      setDestinationLoading(false);
+      if (!silent) {
+        setDestinationLoading(false);
+      }
     }
   }, [apiService, destinationListEndpoint, token]);
 
   useEffect(() => {
     void fetchDestinations();
   }, [fetchDestinations]);
+
+  useEffect(() => {
+    if (!tokenReady || !token || !tripId || !destinationListEndpoint) return;
+
+    const abortController = new AbortController();
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "text/event-stream",
+    };
+
+    const refreshFromStream = () => {
+      void fetchTrip({ silent: true });
+      void fetchDestinations({ silent: true });
+    };
+
+    const connect = async () => {
+      while (!abortController.signal.aborted) {
+        let connected = false;
+
+        for (const endpoint of realtimeEndpoints(tripId)) {
+          try {
+            const response = await fetch(`${getApiDomain()}${endpoint}`, {
+              method: "GET",
+              headers,
+              signal: abortController.signal,
+              cache: "no-store",
+            });
+
+            const contentType = response.headers.get("Content-Type") ?? "";
+            if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
+              continue;
+            }
+
+            connected = true;
+            await readStreamEvents(response.body, abortController.signal, () => {
+              refreshFromStream();
+            });
+            break;
+          } catch {
+            if (abortController.signal.aborted) {
+              return;
+            }
+          }
+        }
+
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (!connected) {
+          await new Promise<void>((resolve) => {
+            reconnectTimer = setTimeout(resolve, 3000);
+          });
+        }
+      }
+    };
+
+    void connect();
+
+    return () => {
+      abortController.abort();
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+    };
+  }, [destinationListEndpoint, fetchDestinations, fetchTrip, token, tokenReady, tripId]);
 
   const handleAddDestination = useCallback(async () => {
     if (!destinationListEndpoint) {
@@ -134,10 +308,10 @@ export default function TripRoom() {
 
     try {
       const created = await apiService.post<Destination>(destinationListEndpoint, {
-        name: newDestinationName.trim(),
+        destinationName: newDestinationName.trim(),
       });
       setDestinations((current) => [created, ...current]);
-      setSelectedDestinationId(created.id);
+      setActivitiesByDestination((current) => ({ ...current, [created.id]: [] }));
       setNewDestinationName("");
       setFeedback({ type: "success", text: "Destination added." });
     } catch (error) {
@@ -147,10 +321,10 @@ export default function TripRoom() {
   }, [apiService, destinationListEndpoint, newDestinationName]);
 
   const handleSearchActivities = useCallback(async () => {
-    if (!trip?.id || selectedDestinationId === null) {
+    if (!trip?.id || activityModalDestinationId === null) {
       setActivityFeedback({
         type: "error",
-        text: "Select a destination first.",
+        text: "Pick a destination first.",
       });
       return;
     }
@@ -160,11 +334,34 @@ export default function TripRoom() {
       return;
     }
 
+    const endpoint = getActivitiesEndpoint(activityModalDestinationId);
+    if (!endpoint) {
+      setActivityFeedback({ type: "error", text: "Trip is not loaded yet." });
+      return;
+    }
+
     try {
       setActivityLoading(true);
       setActivityFeedback(null);
-      const endpoint = `${destinationEndpoint}?query=${encodeURIComponent(activityQuery.trim())}`;
-      const results = await apiService.get<ActivitySearchResult[]>(endpoint);
+      const params = new URLSearchParams({ query: activityQuery.trim() });
+
+      if (activityLocation.trim()) {
+        params.set("location", activityLocation.trim());
+      }
+
+      if (activityRadius.trim()) {
+        const radiusNumber = Number(activityRadius);
+        if (!Number.isFinite(radiusNumber) || radiusNumber <= 0) {
+          setActivityFeedback({ type: "error", text: "Radius must be a positive number." });
+          setActivityLoading(false);
+          return;
+        }
+        params.set("radius", String(Math.round(radiusNumber)));
+      }
+
+      const results = await apiService.get<ActivitySearchResult[]>(
+        `${endpoint}?${params.toString()}`,
+      );
       setActivityResults(results);
       setActivityFeedback(
         results.length > 0
@@ -180,35 +377,68 @@ export default function TripRoom() {
     } finally {
       setActivityLoading(false);
     }
-  }, [activityQuery, apiService, destinationEndpoint, selectedDestinationId, trip?.id]);
+  }, [
+    activityLocation,
+    activityModalDestinationId,
+    activityQuery,
+    activityRadius,
+    apiService,
+    getActivitiesEndpoint,
+    trip?.id,
+  ]);
+
+  const fetchActivitiesForDestination = useCallback(
+    async (destinationId: number) => {
+      if (!token) return;
+      const endpoint = getActivitiesEndpoint(destinationId);
+      if (!endpoint) return;
+
+      try {
+        const saved = await apiService.get<ActivitySearchResult[]>(endpoint);
+        setActivitiesByDestination((current) => ({ ...current, [destinationId]: saved ?? [] }));
+      } catch {
+        setActivitiesByDestination((current) => ({ ...current, [destinationId]: [] }));
+      }
+    },
+    [apiService, getActivitiesEndpoint, token],
+  );
 
   useEffect(() => {
-    if (!destinationEndpoint || !token) {
-      setSelectedActivities([]);
-      return;
-    }
+    if (!token || destinations.length === 0) return;
+    destinations.forEach((destination) => {
+      void fetchActivitiesForDestination(destination.id);
+    });
+  }, [destinations, fetchActivitiesForDestination, token]);
 
-    const fetchSavedActivities = async () => {
+  const openActivityModal = useCallback((destinationId: number) => {
+    setActivityModalDestinationId(destinationId);
+    setActivityModalOpen(true);
+    setActivityQuery("");
+    setActivityLocation("");
+    setActivityRadius("");
+    setActivityResults(null);
+    setActivityFeedback(null);
+  }, []);
+
+  const closeActivityModal = useCallback(() => {
+    setActivityModalOpen(false);
+    setActivityModalDestinationId(null);
+    setActivityQuery("");
+    setActivityLocation("");
+    setActivityRadius("");
+    setActivityResults(null);
+    setActivityFeedback(null);
+    setActivityLoading(false);
+  }, []);
+
+  const handleAddActivityToDestination = useCallback(
+    async (activity: ActivitySearchResult) => {
+      if (!token || activityModalDestinationId === null) return;
+      const endpoint = getActivitiesEndpoint(activityModalDestinationId);
+      if (!endpoint) return;
+
       try {
-        const saved = await apiService.get<ActivitySearchResult[]>(destinationEndpoint);
-        setSelectedActivities(saved);
-      } catch {
-        setSelectedActivities([]);
-      }
-    };
-
-    fetchSavedActivities();
-  }, [apiService, destinationEndpoint, token]);
-
-  const handleSelectActivity = useCallback((activity: ActivitySearchResult) => {
-    const persistActivity = async () => {
-      if (!destinationEndpoint) {
-        setActivityFeedback({ type: "error", text: "Destination is missing." });
-        return;
-      }
-
-      try {
-        const saved = await apiService.post<ActivitySearchResult>(destinationEndpoint, {
+        const saved = await apiService.post<ActivitySearchResult>(endpoint, {
           placeId: activity.placeId,
           name: activity.name,
           address: activity.address,
@@ -218,86 +448,55 @@ export default function TripRoom() {
           longitude: activity.longitude,
         });
 
-        setSelectedActivities((current) => {
-          if (saved.placeId && current.some((existing) => existing.placeId === saved.placeId)) {
+        setActivitiesByDestination((current) => {
+          const existing = current[activityModalDestinationId] ?? [];
+          if (saved?.placeId && existing.some((entry) => entry.placeId === saved.placeId)) {
             return current;
           }
-          return [saved, ...current];
+          return { ...current, [activityModalDestinationId]: [saved, ...existing] };
         });
-        setActivityFeedback({ type: "success", text: `${saved.name ?? "Activity"} added to this destination.` });
+        setActivityFeedback({ type: "success", text: `${saved.name ?? "Activity"} added.` });
       } catch (error) {
         const err = error as Error;
         setActivityFeedback({ type: "error", text: err.message || "Could not add activity." });
       }
-    };
+    },
+    [activityModalDestinationId, apiService, getActivitiesEndpoint, token],
+  );
 
-    void persistActivity();
-  }, [apiService, destinationEndpoint]);
-
-  const handleRenameActivity = useCallback((activity: ActivitySearchResult) => {
-    const updateActivity = async () => {
-      if (!destinationEndpoint || !activity.id) {
-        setActivityFeedback({ type: "error", text: "Cannot rename this activity." });
-        return;
-      }
-
-      const nextName = window.prompt("Rename activity", activity.name ?? "");
-      if (!nextName || !nextName.trim()) {
-        return;
-      }
-
-      try {
-        const updated = await apiService.put<ActivitySearchResult>(
-          `${destinationEndpoint}/${activity.id}`,
-          {
-            placeId: activity.placeId,
-            name: nextName.trim(),
-            address: activity.address,
-            rating: activity.rating,
-            photoUrl: activity.photoUrl,
-            latitude: activity.latitude,
-            longitude: activity.longitude,
-          },
+  const handleVoteUpdate = useCallback((updatedActivity: ActivitySearchResult) => {
+    if (!updatedActivity.id) return;
+    setActivitiesByDestination((current) => {
+      const next = { ...current };
+      Object.keys(next).forEach((destinationId) => {
+        const parsedDestinationId = Number(destinationId);
+        next[parsedDestinationId] = (next[parsedDestinationId] ?? []).map((activity) =>
+          activity.id === updatedActivity.id ? updatedActivity : activity,
         );
+      });
+      return next;
+    });
+  }, []);
 
-        setSelectedActivities((current) =>
-          current.map((entry) => (entry.id === updated.id ? updated : entry)),
-        );
-        setActivityFeedback({ type: "success", text: "Activity updated." });
-      } catch (error) {
-        const err = error as Error;
-        setActivityFeedback({ type: "error", text: err.message || "Could not update activity." });
-      }
-    };
+  const handleVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
 
-    void updateActivity();
-  }, [apiService, destinationEndpoint]);
+  const handleDestinationVoteError = useCallback((error: string) => {
+    setFeedback({ type: "error", text: error });
+  }, []);
 
-  const handleDeleteActivity = useCallback((activity: ActivitySearchResult) => {
-    const deleteActivity = async () => {
-      if (!destinationEndpoint || !activity.id) {
-        setActivityFeedback({ type: "error", text: "Cannot delete this activity." });
-        return;
-      }
-
-      try {
-        await apiService.delete(`${destinationEndpoint}/${activity.id}`);
-        setSelectedActivities((current) => current.filter((entry) => entry.id !== activity.id));
-        setActivityFeedback({ type: "success", text: "Activity removed." });
-      } catch (error) {
-        const err = error as Error;
-        setActivityFeedback({ type: "error", text: err.message || "Could not remove activity." });
-      }
-    };
-
-    void deleteActivity();
-  }, [apiService, destinationEndpoint]);
+  const participantItems = participants.length > 0
+    ? participants
+    : username?.trim()
+      ? [{ userId: Number(currentUserId || 0), roomUsername: username.trim() }]
+      : [];
 
   if (loading) {
     return (
       <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
         <Sidebar onLogout={handleLogout} />
-        <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
+        <main className="h-screen overflow-y-auto px-2 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div
               className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900"
@@ -328,7 +527,7 @@ export default function TripRoom() {
     <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
       <Sidebar onLogout={handleLogout} />
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="w-full">
 
           <header className="mb-6 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-gray-200">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -397,11 +596,22 @@ export default function TripRoom() {
                         strokeWidth="2"
                       />
                     </svg>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
-                        {(username?.trim()?.[0] ?? "U").toUpperCase()}
-                      </span>
-                      <span className="font-medium text-gray-900">{username?.trim() || "You"}</span>
+                    <span className="text-gray-500">Participants</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {participantItems.map((participant) => {
+                        const isCurrentUser = String(participant.userId) === String(currentUserId);
+                        return (
+                          <div key={`${participant.userId}-${participant.roomUsername}`} className="flex items-center gap-2">
+                            <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
+                              {(participant.roomUsername?.trim()?.[0] ?? "U").toUpperCase()}
+                            </span>
+                            <span className="font-medium text-gray-900">{participant.roomUsername}</span>
+                            {isCurrentUser && (
+                              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">You</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -429,168 +639,210 @@ export default function TripRoom() {
             </p>
           )}
 
-          {trip.status === "ACTIVE" && (
-            <div className="mt-4 space-y-3">
-              <div className="flex flex-col gap-3 md:flex-row">
-                <input
-                  type="text"
-                  value={newDestinationName}
-                  onChange={(event) => setNewDestinationName(event.target.value)}
-                  placeholder="Add destination (e.g. Zurich)"
-                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddDestination}
-                  className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
-                >
-                  Add Destination
-                </button>
-              </div>
+          <section className="mt-6">
+            <div className="flex gap-7 overflow-x-auto pb-4">
+              {destinationLoading && (
+                <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                  <p className="text-sm text-gray-600">Loading destinations...</p>
+                </div>
+              )}
 
-              <div className="flex flex-wrap gap-2">
-                {destinationLoading && (
-                  <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">Loading destinations...</span>
-                )}
-                {!destinationLoading && destinations.length === 0 && (
-                  <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">No destinations yet.</span>
-                )}
-                {destinations.map((destination) => (
-                  <button
+              {!destinationLoading && [...destinations]
+                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                .map((destination) => {
+                const items = activitiesByDestination[destination.id] ?? [];
+                return (
+                  <div
                     key={destination.id}
+                    className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
+                        <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                      </div>
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                        Score {destination.score ?? 0}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 space-y-4">
+                      {items.length === 0 ? (
+                        <p className="text-sm text-gray-600">No events yet.</p>
+                      ) : (
+                        [...items]
+                          .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                          .map((activity) => (
+                          <article
+                            key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
+                            className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
+                          >
+                            {activity.photoUrl ? (
+                              <img
+                                src={activity.photoUrl}
+                                alt={activity.name ?? "Event"}
+                                className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
+                            )}
+                            <div className="min-w-0">
+                              <h3 className="truncate text-sm font-semibold text-gray-900">
+                                {activity.name ?? "Unnamed event"}
+                              </h3>
+                              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                                {activity.rating !== null && <span>Rating: {activity.rating}</span>}
+                                {activity.address && <span className="truncate">{activity.address}</span>}
+                              </div>
+                              <div className="mt-3">
+                                <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
+                              </div>
+                            </div>
+                          </article>
+                        ))
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openActivityModal(destination.id)}
+                      className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0]"
+                    >
+                      Add Event
+                    </button>
+                  </div>
+                );
+              })}
+
+              <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
+                <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
+                <div className="mt-4">
+                  <input
+                    type="text"
+                    value={newDestinationName}
+                    onChange={(event) => setNewDestinationName(event.target.value)}
+                    placeholder="e.g. Rome"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button
                     type="button"
-                    onClick={() => setSelectedDestinationId(destination.id)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                      selectedDestinationId === destination.id
-                        ? "border-blue-300 bg-blue-50 text-blue-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    onClick={handleAddDestination}
+                    disabled={destinationLoading}
+                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Add Destination
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <Dialog open={activityModalOpen} onClose={closeActivityModal} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                <DialogTitle className="text-lg font-semibold text-gray-900">Add an event</DialogTitle>
+                <p className="mt-1 text-sm text-gray-600">Search for an activity and add it to this destination.</p>
+
+                <div className="mt-4 flex flex-col gap-3">
+                  <input
+                    type="text"
+                    value={activityQuery}
+                    onChange={(event) => setActivityQuery(event.target.value)}
+                    placeholder="Try museum, hiking, food..."
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  />
+
+                  <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+                    <input
+                      type="text"
+                      value={activityLocation}
+                      onChange={(event) => setActivityLocation(event.target.value)}
+                      placeholder="Optional location (e.g. Zurich)"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={activityRadius}
+                      onChange={(event) => setActivityRadius(event.target.value)}
+                      placeholder="Radius (meters)"
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSearchActivities}
+                      disabled={activityLoading}
+                      className="rounded-lg bg-[#2684ff] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {activityLoading ? "Searching..." : "Search"}
+                    </button>
+                  </div>
+                </div>
+
+                {activityFeedback && (
+                  <p
+                    className={`mt-4 rounded-md border px-3 py-2 text-sm ${
+                      activityFeedback.type === "error"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : "border-emerald-200 bg-emerald-50 text-emerald-700"
                     }`}
                   >
-                    {destination.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    {activityFeedback.text}
+                  </p>
+                )}
 
-        <section className="mt-6 rounded-2xl bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <h2 className="text-xl font-bold text-gray-900">Activity Search</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            Search for activities for the selected destination.
-          </p>
-
-          {selectedDestinationId === null && (
-            <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Choose a destination first, then search for activities here.
-            </p>
-          )}
-
-          <div className="mt-4 flex flex-col gap-3 md:flex-row">
-            <input
-              type="text"
-              value={activityQuery}
-              onChange={(event) => setActivityQuery(event.target.value)}
-              placeholder="Try museum, hiking, food, nightlife..."
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              disabled={selectedDestinationId === null}
-            />
-            <button
-              type="button"
-              onClick={handleSearchActivities}
-              disabled={activityLoading || selectedDestinationId === null}
-              className="rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {activityLoading ? "Searching..." : "Search"}
-            </button>
-          </div>
-
-          {activityFeedback && (
-            <p
-              className={`mt-4 rounded-md border px-3 py-2 text-sm ${
-                activityFeedback.type === "error"
-                  ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
-              }`}
-            >
-              {activityFeedback.text}
-            </p>
-          )}
-
-          {activityResults && activityResults.length > 0 && (
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {activityResults.map((activity) => (
-                <article
-                  key={activity.placeId ?? `${activity.name}-${activity.address}`}
-                  className="rounded-xl border border-gray-200 bg-gray-50 p-4 transition hover:-translate-y-0.5 hover:border-blue-200"
-                >
-                  <h3 className="text-base font-semibold text-gray-900">{activity.name ?? "Unnamed activity"}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{activity.address ?? "Address unavailable"}</p>
-                  {activity.photoUrl && (
-                    <img
-                      src={activity.photoUrl}
-                      alt={activity.name ?? "Activity"}
-                      className="mt-3 h-36 w-full rounded-lg object-cover"
-                    />
+                <div className="mt-4 max-h-[55vh] overflow-y-auto">
+                  {activityResults && activityResults.length > 0 ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {activityResults.map((activity) => (
+                        <article
+                          key={activity.placeId ?? `${activity.name}-${activity.address}`}
+                          className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+                        >
+                          <h3 className="text-sm font-semibold text-gray-900">{activity.name ?? "Unnamed activity"}</h3>
+                          <p className="mt-1 text-xs text-gray-600">{activity.address ?? "Address unavailable"}</p>
+                          {activity.photoUrl && (
+                            <img
+                              src={activity.photoUrl}
+                              alt={activity.name ?? "Activity"}
+                              className="mt-3 h-28 w-full rounded-lg object-cover"
+                            />
+                          )}
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <div className="text-xs text-gray-600">
+                              {activity.rating !== null ? <>Rating: {activity.rating}</> : <span>&nbsp;</span>}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void handleAddActivityToDestination(activity)}
+                              className="rounded-lg bg-[#2684ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1f6fe0]"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600">Search to see suggestions.</p>
                   )}
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
-                    {activity.rating !== null && <span className="rounded-full bg-white px-2 py-1">Rating: {activity.rating}</span>}
-                    {activity.latitude !== null && activity.longitude !== null && (
-                      <span className="rounded-full bg-white px-2 py-1">{activity.latitude}, {activity.longitude}</span>
-                    )}
-                  </div>
+                </div>
+
+                <div className="mt-5 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => handleSelectActivity(activity)}
-                    className="mt-3 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
+                    onClick={closeActivityModal}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                   >
-                    Add to destination
+                    Close
                   </button>
-                </article>
-              ))}
+                </div>
+              </DialogPanel>
             </div>
-          )}
-
-          {selectedActivities.length > 0 && (
-            <div className="mt-6 border-t border-gray-200 pt-5">
-              <h3 className="text-lg font-semibold text-gray-900">Chosen activities</h3>
-              <div className="mt-4 space-y-4">
-                {selectedActivities.map((activity) => (
-                  <article key={activity.placeId ?? `${activity.name}-${activity.address}`} className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4">
-                    {activity.photoUrl ? (
-                      <img
-                        src={activity.photoUrl}
-                        alt={activity.name ?? "Activity"}
-                        className="h-24 w-24 shrink-0 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="h-24 w-24 shrink-0 rounded-lg bg-gray-200" />
-                    )}
-                    <div className="min-w-0">
-                      <h4 className="text-base font-semibold text-gray-900">{activity.name ?? "Unnamed activity"}</h4>
-                      <p className="mt-1 text-sm text-gray-600">{activity.address ?? "Address unavailable"}</p>
-                      <div className="mt-3 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleRenameActivity(activity)}
-                          className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                        >
-                          Rename
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteActivity(activity)}
-                          className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
+          </Dialog>
       </div>
       </main>
     </div>
