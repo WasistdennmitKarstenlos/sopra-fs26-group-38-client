@@ -96,15 +96,7 @@ export default function TripRoom() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const stored = window.localStorage.getItem("sidebarCollapsed");
-      return stored ? JSON.parse(stored) as boolean : false;
-    } catch {
-      return false;
-    }
-  });
+  const { value: sidebarCollapsed, set: setSidebarCollapsed } = useLocalStorage<boolean>("sidebarCollapsed", false);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [newDestinationName, setNewDestinationName] = useState("");

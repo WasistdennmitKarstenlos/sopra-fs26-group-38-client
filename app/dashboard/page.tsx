@@ -42,15 +42,7 @@ export default function DashboardPage() {
   const [joining, setJoining] = useState(false);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const stored = window.localStorage.getItem("sidebarCollapsed");
-      return stored ? JSON.parse(stored) as boolean : false;
-    } catch {
-      return false;
-    }
-  });
+  const { value: sidebarCollapsed, set: setSidebarCollapsed } = useLocalStorage<boolean>("sidebarCollapsed", false);
 
   const getStoredToken = useCallback((): string => {
     try {
