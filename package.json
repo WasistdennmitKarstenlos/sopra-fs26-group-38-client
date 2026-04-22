@@ -10,7 +10,6 @@
     "fmt": "deno fmt"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
     "next": "^15.5.7",
     "node-localstorage": "^3.0.5",
     "postcss": "^8.5.8",
@@ -21,6 +20,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.13.5",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
