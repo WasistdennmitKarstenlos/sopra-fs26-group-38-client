@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
@@ -110,6 +110,36 @@ export default function TripRoom() {
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
+
+  const isHost = useMemo(() => {
+    if (!trip) return false;
+    if (typeof trip.isHost === "boolean") return trip.isHost;
+    return String(trip.hostId ?? "") === String(currentUserId ?? "");
+  }, [currentUserId, trip]);
+
+  const isEvaluationMode = Boolean(trip?.evaluationMode ?? (trip?.status === "EVALUATION"));
+  const isFinalized = Boolean(trip?.finalized ?? (trip?.status === "FINALIZED"));
+  const isReadOnlyMode = isEvaluationMode || isFinalized;
+
+  const sortedDestinations = useMemo(
+    () => [...destinations].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
+    [destinations],
+  );
+
+  const winnerDestination = useMemo(() => {
+    if (!trip || sortedDestinations.length === 0) return null;
+    const finalId = trip.finalDestinationId ? Number(trip.finalDestinationId) : null;
+    if (finalId !== null) {
+      const finalMatch = sortedDestinations.find((destination) => destination.id === finalId);
+      if (finalMatch) return finalMatch;
+    }
+    return sortedDestinations[0] ?? null;
+  }, [sortedDestinations, trip]);
+
+  const destinationExists = sortedDestinations.length > 0;
+  const canStartFinalEvaluation = Boolean(
+    trip && isHost && destinationExists && !isEvaluationMode && !isFinalized,
+  );
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -298,6 +328,11 @@ export default function TripRoom() {
   }, [destinationListEndpoint, fetchDestinations, fetchTrip, token, tokenReady, tripId]);
 
   const handleAddDestination = useCallback(async () => {
+    if (isReadOnlyMode) {
+      setFeedback({ type: "error", text: "Trip is in read-only mode." });
+      return;
+    }
+
     if (!destinationListEndpoint) {
       setFeedback({ type: "error", text: "Trip is not loaded yet." });
       return;
@@ -320,7 +355,7 @@ export default function TripRoom() {
       const err = error as Error;
       setFeedback({ type: "error", text: err.message || "Could not add destination." });
     }
-  }, [apiService, destinationListEndpoint, newDestinationName]);
+  }, [apiService, destinationListEndpoint, isReadOnlyMode, newDestinationName]);
 
   const handleSearchActivities = useCallback(async () => {
     if (!trip?.id || activityModalDestinationId === null) {
@@ -439,6 +474,11 @@ export default function TripRoom() {
 
   const handleAddActivityToDestination = useCallback(
     async (activity: ActivitySearchResult) => {
+      if (isReadOnlyMode) {
+        setActivityFeedback({ type: "error", text: "Trip is in read-only mode." });
+        return;
+      }
+
       if (!token || activityModalDestinationId === null) return;
       const endpoint = getActivitiesEndpoint(activityModalDestinationId);
       if (!endpoint) return;
@@ -467,8 +507,29 @@ export default function TripRoom() {
         setActivityFeedback({ type: "error", text: err.message || "Could not add activity." });
       }
     },
-    [activityModalDestinationId, apiService, getActivitiesEndpoint, token],
+    [activityModalDestinationId, apiService, getActivitiesEndpoint, isReadOnlyMode, token],
   );
+
+  const handleStartFinalEvaluation = useCallback(async () => {
+    if (!trip?.id || !canStartFinalEvaluation) return;
+
+    try {
+      const updatedTrip = await apiService.post<Trip>(`/trips/${trip.id}/final-evaluation`);
+      setTrip(updatedTrip);
+      setFeedback({ type: "success", text: "Final evaluation started. Trip is now read-only." });
+      setActivityModalOpen(false);
+      setActivityModalDestinationId(null);
+    } catch (error) {
+      const err = error as Error;
+      setFeedback({ type: "error", text: err.message || "Could not start final evaluation." });
+    }
+  }, [apiService, canStartFinalEvaluation, trip?.id]);
+
+  useEffect(() => {
+    if (isReadOnlyMode && activityModalOpen) {
+      closeActivityModal();
+    }
+  }, [activityModalOpen, closeActivityModal, isReadOnlyMode]);
 
   const handleVoteUpdate = useCallback((updatedActivity: ActivitySearchResult) => {
     if (!updatedActivity.id) return;
@@ -623,15 +684,19 @@ export default function TripRoom() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setFeedback({ type: "success", text: "Final evaluation flow coming soon." })}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0]"
-              >
-                Start Final Evaluation
-              </button>
+              {isHost && (
+                <button
+                  type="button"
+                  onClick={handleStartFinalEvaluation}
+                  disabled={!canStartFinalEvaluation}
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Final Evaluation
+                </button>
+              )}
             </div>
           </header>
+
 
           {feedback && (
             <p
@@ -653,23 +718,50 @@ export default function TripRoom() {
                 </div>
               )}
 
-              {!destinationLoading && [...destinations]
-                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+              {!destinationLoading && sortedDestinations
                 .map((destination) => {
+                const isWinner = Boolean(
+                  isReadOnlyMode && winnerDestination && winnerDestination.id === destination.id,
+                );
                 const items = activitiesByDestination[destination.id] ?? [];
                 return (
                   <div
                     key={destination.id}
-                    className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
+                    className={`relative min-w-85 rounded-2xl bg-white p-6 transition duration-300 ${
+                      isWinner
+                        ? "border-2 border-blue-400 bg-blue-50/50 shadow-[0_0_0_1px_rgba(59,130,246,0.2),0_18px_45px_-14px_rgba(37,99,235,0.65)]"
+                        : "border border-gray-200 shadow-sm"
+                    }`}
                   >
+                    {isWinner && (
+                      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+                        {[...Array(12)].map((_, index) => (
+                          <span
+                            key={`confetti-${destination.id}-${index}`}
+                            className="winner-confetti"
+                            style={{
+                              left: `${8 + index * 7}%`,
+                              animationDelay: `${(index % 6) * 120}ms`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
                         <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
                       </div>
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
-                        Score {destination.score ?? 0}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {isWinner && (
+                          <span className="rounded-full bg-blue-200 px-3 py-1 text-sm font-semibold text-blue-900">
+                            Winner
+                          </span>
+                        )}
+                        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                          Score {destination.score ?? 0}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="mt-5 space-y-4">
@@ -701,7 +793,12 @@ export default function TripRoom() {
                                 {activity.address && <span className="truncate">{activity.address}</span>}
                               </div>
                               <div className="mt-3">
-                                <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
+                                <VoteControls
+                                  activity={activity}
+                                  onVoteUpdate={handleVoteUpdate}
+                                  onError={handleVoteError}
+                                  disabled={isReadOnlyMode}
+                                />
                               </div>
                             </div>
                           </article>
@@ -712,7 +809,8 @@ export default function TripRoom() {
                     <button
                       type="button"
                       onClick={() => openActivityModal(destination.id)}
-                      className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0]"
+                      disabled={isReadOnlyMode}
+                      className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Add Event
                     </button>
@@ -729,12 +827,13 @@ export default function TripRoom() {
                     value={newDestinationName}
                     onChange={(event) => setNewDestinationName(event.target.value)}
                     placeholder="e.g. Rome"
+                    disabled={isReadOnlyMode}
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
                   <button
                     type="button"
                     onClick={handleAddDestination}
-                    disabled={destinationLoading}
+                    disabled={destinationLoading || isReadOnlyMode}
                     className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Add Destination
@@ -829,7 +928,8 @@ export default function TripRoom() {
                             <button
                               type="button"
                               onClick={() => void handleAddActivityToDestination(activity)}
-                              className="rounded-lg bg-[#2684ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1f6fe0]"
+                              disabled={isReadOnlyMode}
+                              className="rounded-lg bg-[#2684ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               Add
                             </button>
@@ -856,6 +956,42 @@ export default function TripRoom() {
           </Dialog>
       </div>
       </main>
+      <style jsx>{`
+        .winner-confetti {
+          position: absolute;
+          top: -10px;
+          width: 8px;
+          height: 14px;
+          border-radius: 999px;
+          opacity: 0;
+          animation: winner-confetti-fall 2.6s ease-in-out infinite;
+          background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+        }
+
+        .winner-confetti:nth-child(3n) {
+          background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 100%);
+          height: 10px;
+        }
+
+        .winner-confetti:nth-child(4n) {
+          background: linear-gradient(180deg, #bfdbfe 0%, #1d4ed8 100%);
+          width: 6px;
+        }
+
+        @keyframes winner-confetti-fall {
+          0% {
+            transform: translateY(-16px) rotate(0deg);
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(140px) rotate(260deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
