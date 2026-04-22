@@ -23,7 +23,7 @@ const Register: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await apiService.post<User>("/users/register", { username, password, bio });
+      const response = await apiService.post<User>("/auth/register", { username, password, bio });
 
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
