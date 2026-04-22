@@ -46,18 +46,21 @@ export class ApiService {
       let errorDetail = res.statusText;
       try {
         const errorInfo = await res.json();
-        if (errorInfo?.message) {
+        if (errorInfo?.detail) {
+          errorDetail = errorInfo.detail;
+        } else if (errorInfo?.message) {
           errorDetail = errorInfo.message;
+        } else if (errorInfo?.title) {
+          errorDetail = errorInfo.title;
         } else {
           errorDetail = JSON.stringify(errorInfo);
         }
       } catch {
         // If parsing fails, keep using res.statusText
       }
-      const detailedMessage = `${errorMessage} (${res.status}: ${errorDetail})`;
-      const error: ApplicationError = new Error(
-        detailedMessage,
-      ) as ApplicationError;
+      // Prefer user-facing message from API if available.
+      const userMessage = errorDetail || res.statusText || "Unknown error";
+      const error: ApplicationError = new Error(userMessage) as ApplicationError;
       error.info = JSON.stringify(
         { status: res.status, statusText: res.statusText },
         null,
@@ -141,5 +144,30 @@ export class ApiService {
       res,
       "An error occurred while deleting the data.\n",
     );
+  }
+
+  /**
+   * Vote on an activity.
+   * @param activityId - The ID of the activity to vote on.
+   * @param voteType - "UP" or "DOWN".
+   * @returns Updated vote data.
+   */
+  public async voteOnActivity(activityId: number, voteType: "UP" | "DOWN") {
+    return this.put(`/activities/${activityId}/vote`, { voteType });
+  }
+
+  /**
+   * Vote on a destination.
+   * @param tripId - The trip ID.
+   * @param destinationId - The ID of the destination to vote on.
+   * @param voteType - "UP" or "DOWN".
+   * @returns Updated destination vote data.
+   */
+  public async voteOnDestination(
+    tripId: number | string,
+    destinationId: number,
+    voteType: "UP" | "DOWN",
+  ): Promise<{ destinationId: number; upvotes: number; downvotes: number; score: number; userVote: "UP" | "DOWN" | null }> {
+    return this.put(`/trips/${tripId}/destinations/${destinationId}/vote`, { voteType });
   }
 }

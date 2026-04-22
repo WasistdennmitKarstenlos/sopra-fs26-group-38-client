@@ -7,4 +7,8 @@ export interface ActivitySearchResult {
   photoUrl: string | null;
   latitude: number | null;
   longitude: number | null;
+  upvotes?: number;
+  downvotes?: number;
+  score?: number;
+  userVote?: "UP" | "DOWN" | null;
 }
