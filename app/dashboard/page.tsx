@@ -42,6 +42,15 @@ export default function DashboardPage() {
   const [joining, setJoining] = useState(false);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const stored = window.localStorage.getItem("sidebarCollapsed");
+      return stored ? JSON.parse(stored) as boolean : false;
+    } catch {
+      return false;
+    }
+  });
 
   const getStoredToken = useCallback((): string => {
     try {
@@ -228,8 +237,8 @@ export default function DashboardPage() {
       <Suspense fallback={null}>
         <CreateTripFromQuery onOpen={openCreateTripDialog} />
       </Suspense>
-      <div className="grid grid-cols-[270px_1fr] h-screen overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
 
       {/* Main content */}
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">

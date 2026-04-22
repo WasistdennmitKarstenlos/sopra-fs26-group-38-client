@@ -96,6 +96,15 @@ export default function TripRoom() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      const stored = window.localStorage.getItem("sidebarCollapsed");
+      return stored ? JSON.parse(stored) as boolean : false;
+    } catch {
+      return false;
+    }
+  });
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [newDestinationName, setNewDestinationName] = useState("");
@@ -500,8 +509,8 @@ export default function TripRoom() {
 
   if (loading) {
     return (
-      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
         <main className="h-screen overflow-y-auto px-2 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div
@@ -516,8 +525,8 @@ export default function TripRoom() {
 
   if (!trip) {
     return (
-      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
         <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
@@ -530,8 +539,8 @@ export default function TripRoom() {
   }
 
   return (
-    <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-      <Sidebar onLogout={handleLogout} />
+    <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+      <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
         <div className="w-full">
 
