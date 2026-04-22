@@ -649,7 +649,7 @@ export default function TripRoom() {
           <section className="mt-6">
             <div className="flex gap-7 overflow-x-auto pb-4">
               {destinationLoading && (
-                <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                   <p className="text-sm text-gray-600">Loading destinations...</p>
                 </div>
               )}
@@ -661,11 +661,11 @@ export default function TripRoom() {
                 return (
                   <div
                     key={destination.id}
-                    className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
+                    className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
+                        <h2 className="truncate text-3xl font-bold text-gray-900" title={destination.destinationName ?? undefined}>{destination.destinationName}</h2>
                         <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
                       </div>
                       <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
@@ -694,12 +694,14 @@ export default function TripRoom() {
                               <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
                             )}
                             <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold text-gray-900">
+                              <h3 className="truncate text-sm font-semibold text-gray-900" title={activity.name ?? undefined}>
                                 {activity.name ?? "Unnamed event"}
                               </h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                              <div className="mt-1 flex flex-col gap-y-0.5 text-xs text-gray-600">
                                 {activity.rating !== null && <span>Rating: {activity.rating}</span>}
-                                {activity.address && <span className="truncate">{activity.address}</span>}
+                                {activity.address && (
+                                  <span className="truncate" title={activity.address}>{activity.address}</span>
+                                )}
                               </div>
                               <div className="mt-3">
                                 <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
@@ -721,7 +723,7 @@ export default function TripRoom() {
                 );
               })}
 
-              <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                 <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
                 <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
                 <div className="mt-4">
