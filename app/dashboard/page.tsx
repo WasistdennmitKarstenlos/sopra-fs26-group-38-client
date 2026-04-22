@@ -7,6 +7,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Trip } from "@/types/trip";
+import { compressImageToBase64 } from "@/utils/imageUtils";
 import { Sidebar } from "@/components/Sidebar";
 
 function CreateTripFromQuery({ onOpen }: { onOpen: () => void }) {
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const { clear: clearUsername } = useLocalStorage("username", "");
   const [createTripOpen, setCreateTripOpen] = useState(false);
   const [tripName, setTripName] = useState("");
+  const [tripImageBase64, setTripImageBase64] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
   const [joinTripOpen, setJoinTripOpen] = useState(false);
@@ -65,6 +67,7 @@ export default function DashboardPage() {
     setCreateTripOpen(false);
     setFeedback(null);
     setTripName("");
+    setTripImageBase64(null);
     setCreating(false);
     router.replace("/dashboard");
   }, [router]);
@@ -150,7 +153,7 @@ export default function DashboardPage() {
 
       setCreating(true);
       try {
-        const response = await apiService.post<Trip>("/trips", { name: normalizedTripName });
+        const response = await apiService.post<Trip>("/trips", { name: normalizedTripName, imageBase64: tripImageBase64 ?? undefined });
         if (response?.id) {
           setFeedback({ type: "success", text: "Trip created successfully! Redirecting..." });
           router.push(`/trips/${response.id}`);
@@ -171,7 +174,7 @@ export default function DashboardPage() {
         setCreating(false);
       }
     },
-    [apiService, getStoredToken, router, token, tripName]
+    [apiService, getStoredToken, router, token, tripImageBase64, tripName]
   );
 
 
@@ -278,7 +281,11 @@ export default function DashboardPage() {
               <div className="grid grid-cols-4 gap-7">
                 {myTrips.map((trip) => (
                   <Link key={trip.id ?? `my-${trip.roomCode ?? trip.name}`} href={`/trips/${trip.id}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
-                    <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-[#c9d8f0] to-[#8fb0d8] mb-3.5" />
+                    {trip.imageBase64 ? (
+                      <img src={trip.imageBase64} alt={trip.name ?? "Trip cover"} className="w-full aspect-square rounded-2xl object-cover mb-3.5" />
+                    ) : (
+                      <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-[#c9d8f0] to-[#8fb0d8] mb-3.5" />
+                    )}
                     <h3 className="m-0 mb-1.5 text-[22px] font-semibold">{trip.name ?? "Untitled Trip"}</h3>
                     <p className="m-0 text-sm text-[#666]">Status: {(trip.status ?? "N/A").toLowerCase()}</p>
                     <p className="m-0 text-sm text-[#666]">
@@ -296,7 +303,11 @@ export default function DashboardPage() {
               <div className="grid grid-cols-6 gap-6">
                 {sharedTrips.map((trip) => (
                   <Link key={trip.id ?? `shared-${trip.roomCode ?? trip.name}`} href={`/trips/${trip.id}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
-                    <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-[#d7d7d7] to-[#bdbdbd] mb-3" />
+                    {trip.imageBase64 ? (
+                      <img src={trip.imageBase64} alt={trip.name ?? "Trip cover"} className="w-full aspect-square rounded-2xl object-cover mb-3" />
+                    ) : (
+                      <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-[#d7d7d7] to-[#bdbdbd] mb-3" />
+                    )}
                     <h3 className="m-0 mb-1.5 text-lg font-semibold">{trip.name ?? "Untitled Trip"}</h3>
                     <p className="m-0 text-sm text-[#666]">Status: {(trip.status ?? "N/A").toLowerCase()}</p>
                     <p className="m-0 text-sm text-[#666]">
@@ -351,6 +362,49 @@ export default function DashboardPage() {
                     onChange={(event) => setTripName(event.target.value)}
                     className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-gray-100"
                   />
+
+                  <div className="mt-4">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Cover Image <span className="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    {tripImageBase64 ? (
+                      <div className="relative">
+                        <img
+                          src={tripImageBase64}
+                          alt="Cover preview"
+                          className="w-full h-32 rounded-lg object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setTripImageBase64(null)}
+                          disabled={creating}
+                          className="absolute top-1.5 right-1.5 rounded-full bg-black/50 px-2 py-0.5 text-xs text-white hover:bg-black/70"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex w-full cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-300 px-3.5 py-5 text-sm text-gray-500 transition hover:border-blue-400 hover:text-blue-500">
+                        <span>Click to upload image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={creating}
+                          className="sr-only"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              const b64 = await compressImageToBase64(file);
+                              setTripImageBase64(b64);
+                            } catch {
+                              setFeedback({ type: "error", text: "Failed to process image. Please try another file." });
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
 
                   <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
                     <button
