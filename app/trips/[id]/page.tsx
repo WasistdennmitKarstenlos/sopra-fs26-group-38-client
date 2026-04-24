@@ -96,6 +96,7 @@ export default function TripRoom() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [loading, setLoading] = useState(true);
+  const { value: sidebarCollapsed, set: setSidebarCollapsed } = useLocalStorage<boolean>("sidebarCollapsed", false);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [newDestinationName, setNewDestinationName] = useState("");
@@ -561,8 +562,8 @@ export default function TripRoom() {
 
   if (loading) {
     return (
-      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
         <main className="h-screen overflow-y-auto px-2 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div
@@ -577,8 +578,8 @@ export default function TripRoom() {
 
   if (!trip) {
     return (
-      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
         <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
@@ -591,8 +592,8 @@ export default function TripRoom() {
   }
 
   return (
-    <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-      <Sidebar onLogout={handleLogout} />
+    <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+      <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
         <div className="w-full">
 
@@ -713,7 +714,7 @@ export default function TripRoom() {
           <section className="mt-6">
             <div className="flex gap-7 overflow-x-auto pb-4">
               {destinationLoading && (
-                <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                   <p className="text-sm text-gray-600">Loading destinations...</p>
                 </div>
               )}
@@ -749,7 +750,7 @@ export default function TripRoom() {
                     )}
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
+                        <h2 className="truncate text-3xl font-bold text-gray-900" title={destination.destinationName ?? undefined}>{destination.destinationName}</h2>
                         <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -785,12 +786,14 @@ export default function TripRoom() {
                               <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
                             )}
                             <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold text-gray-900">
+                              <h3 className="truncate text-sm font-semibold text-gray-900" title={activity.name ?? undefined}>
                                 {activity.name ?? "Unnamed event"}
                               </h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
+                              <div className="mt-1 flex flex-col gap-y-0.5 text-xs text-gray-600">
                                 {activity.rating !== null && <span>Rating: {activity.rating}</span>}
-                                {activity.address && <span className="truncate">{activity.address}</span>}
+                                {activity.address && (
+                                  <span className="truncate" title={activity.address}>{activity.address}</span>
+                                )}
                               </div>
                               <div className="mt-3">
                                 <VoteControls
@@ -818,7 +821,7 @@ export default function TripRoom() {
                 );
               })}
 
-              <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                 <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
                 <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
                 <div className="mt-4">
