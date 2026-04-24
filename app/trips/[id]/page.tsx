@@ -716,7 +716,7 @@ export default function TripRoom() {
           )}
 
           <section className="mt-6">
-            <div className="flex gap-7 overflow-x-auto pb-4">
+            <div className="flex gap-7 overflow-x-auto pb-14">
               {destinationLoading && (
                 <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                   <p className="text-sm text-gray-600">Loading destinations...</p>
