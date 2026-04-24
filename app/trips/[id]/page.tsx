@@ -561,7 +561,7 @@ export default function TripRoom() {
   const participantItems = participants.length > 0
     ? participants
     : username?.trim()
-      ? [{ userId: Number(currentUserId || 0), roomUsername: username.trim() }]
+      ? [{ userId: Number(currentUserId || 0), username: username.trim() }]
       : [];
 
   if (loading) {
