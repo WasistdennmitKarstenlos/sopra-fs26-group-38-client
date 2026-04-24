@@ -280,7 +280,7 @@ export default function DashboardPage() {
               <p className="m-0 mb-7 text-lg text-[#666]">You are the owner of these trips.</p>
 
               <div className="grid grid-cols-4 gap-7">
-                {myTrips.map((trip) => (
+                {myTrips.slice(0, 4).map((trip) => (
                   <Link key={trip.id ?? `my-${trip.roomCode ?? trip.name}`} href={`/trips/${trip.id}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
                     {trip.imageBase64 ? (
                       <img src={trip.imageBase64} alt={trip.name ?? "Trip cover"} className="w-full aspect-square rounded-2xl object-cover mb-3.5" />
@@ -302,7 +302,7 @@ export default function DashboardPage() {
               <p className="m-0 mb-7 text-lg text-[#666]">You&apos;re a guest in these trips.</p>
 
               <div className="grid grid-cols-6 gap-6">
-                {sharedTrips.map((trip) => (
+                {sharedTrips.slice(0, 5).map((trip) => (
                   <Link key={trip.id ?? `shared-${trip.roomCode ?? trip.name}`} href={`/trips/${trip.id}`} className="block no-underline text-inherit cursor-pointer hover:scale-[1.02] transition-transform">
                     {trip.imageBase64 ? (
                       <img src={trip.imageBase64} alt={trip.name ?? "Trip cover"} className="w-full aspect-square rounded-2xl object-cover mb-3" />
