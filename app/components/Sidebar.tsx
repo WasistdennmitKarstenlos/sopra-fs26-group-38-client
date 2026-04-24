@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import {
   ChevronLeftIcon,
@@ -10,11 +11,12 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const navigation = [
-  { name: "Home", href: "/dashboard", icon: HomeIcon, current: true },
-  { name: "My Trips", href: "/dashboard#my-trips", icon: PaperAirplaneIcon, current: false },
-  { name: "Shared Trips", href: "/dashboard#shared-trips", icon: LinkIcon, current: false },
+  { name: "Home", href: "/dashboard", icon: HomeIcon},
+  { name: "My Trips", href: "/dashboard/my-trips", icon: PaperAirplaneIcon},
+  { name: "Shared Trips", href: "/dashboard/shared-trips", icon: LinkIcon},
 ];
 
 function classNames(...classes: Array<string | false | null | undefined>) {
@@ -34,6 +36,7 @@ export function Sidebar({
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [userMenuPos, setUserMenuPos] = useState({ top: 0, left: 0 });
   const userButtonRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -93,30 +96,33 @@ export function Sidebar({
         <ul role="list" className="flex flex-1 flex-col gap-y-7">
           <li>
             <ul role="list" className={classNames("-mx-2 space-y-1", !showExpanded && "flex flex-col items-center")}>
-              {navigation.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    title={!showExpanded ? item.name : undefined}
-                    className={classNames(
-                      item.current
-                        ? "bg-gray-50 text-[#1E88E5]"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-[#1E88E5]",
-                      "group flex rounded-md p-2 text-sm/6 font-semibold",
-                      showExpanded ? "gap-x-3" : "justify-center",
-                    )}
-                  >
-                    <item.icon
-                      aria-hidden="true"
+              {navigation.map((item) => {
+                const current = pathname === item.href;
+                return(
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      title={!showExpanded ? item.name : undefined}
                       className={classNames(
-                        item.current ? "text-[#1E88E5]" : "text-gray-400 group-hover:text-[#1E88E5]",
-                        "size-6 shrink-0",
+                        current
+                          ? "bg-gray-50 text-[#1E88E5]"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-[#1E88E5]",
+                        "group flex rounded-md p-2 text-sm/6 font-semibold",
+                        showExpanded ? "gap-x-3" : "justify-center",
                       )}
-                    />
-                    {showExpanded && item.name}
-                  </a>
-                </li>
-              ))}
+                    >
+                      <item.icon
+                        aria-hidden="true"
+                        className={classNames(
+                          current ? "text-[#1E88E5]" : "text-gray-400 group-hover:text-[#1E88E5]",
+                          "size-6 shrink-0",
+                        )}
+                      />
+                      {showExpanded && item.name}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </li>
 
