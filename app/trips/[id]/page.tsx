@@ -295,8 +295,12 @@ export default function TripRoom() {
             }
 
             connected = true;
-            await readStreamEvents(response.body, abortController.signal, () => {
-              refreshFromStream();
+            await readStreamEvents(response.body, abortController.signal, (streamEvent) => {
+              if (streamEvent.event === "trip-status-updated") {
+                void fetchTrip({ silent: true });
+              } else {
+                refreshFromStream();
+              }
             });
             break;
           } catch {
