@@ -81,7 +81,7 @@ async function readStreamEvents(
 
 interface TripParticipant {
   userId: number;
-  roomUsername: string;
+  username: string;
 }
 
 export default function TripRoom() {
@@ -669,11 +669,11 @@ export default function TripRoom() {
                       {participantItems.map((participant) => {
                         const isCurrentUser = String(participant.userId) === String(currentUserId);
                         return (
-                          <div key={`${participant.userId}-${participant.roomUsername}`} className="flex items-center gap-2">
+                          <div key={`${participant.userId}-${participant.username}`} className="flex items-center gap-2">
                             <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
-                              {(participant.roomUsername?.trim()?.[0] ?? "U").toUpperCase()}
+                              {(participant.username?.trim()?.[0] ?? "U").toUpperCase()}
                             </span>
-                            <span className="font-medium text-gray-900">{participant.roomUsername}</span>
+                            <span className="font-medium text-gray-900">{participant.username}</span>
                             {isCurrentUser && (
                               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">You</span>
                             )}

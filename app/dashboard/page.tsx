@@ -39,7 +39,6 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false);
   const [joinTripOpen, setJoinTripOpen] = useState(false);
   const [roomCode, setRoomCode] = useState("");
-  const [roomUsername, setRoomUsername] = useState("");
   const [joinFeedback, setJoinFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [joining, setJoining] = useState(false);
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -77,7 +76,6 @@ export default function DashboardPage() {
     setJoinTripOpen(false);
     setJoinFeedback(null);
     setRoomCode("");
-    setRoomUsername("");
     setJoining(false);
   }, []);
 
@@ -98,19 +96,9 @@ export default function DashboardPage() {
         return;
       }
 
-      const normalizedUsername = roomUsername.trim();
-      if (!normalizedUsername) {
-        setJoinFeedback({ type: "error", text: "Please enter a name for this trip." });
-        return;
-      }
-      if (normalizedUsername.length > 20) {
-        setJoinFeedback({ type: "error", text: "Name must be 20 characters or fewer." });
-        return;
-      }
-
       setJoining(true);
       try {
-        const response = await apiService.post<{ tripId: string }>("/trips/join", { roomCode: normalizedCode, roomUsername: normalizedUsername });
+        const response = await apiService.post<{ tripId: string }>("/trips/join", { roomCode: normalizedCode });
         if (response?.tripId) {
           setJoinFeedback({ type: "success", text: "Joined! Redirecting..." });
           router.push(`/trips/${response.tripId}`);
@@ -132,7 +120,7 @@ export default function DashboardPage() {
         setJoining(false);
       }
     },
-    [apiService, getStoredToken, roomCode, roomUsername, router, token]
+    [apiService, getStoredToken, roomCode, router, token]
   );
 
   const onCreateTrip = useCallback(
@@ -469,20 +457,6 @@ export default function DashboardPage() {
                     disabled={joining}
                     value={roomCode}
                     onChange={(event) => setRoomCode(event.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-gray-100"
-                  />
-
-                  <label className="mt-4 mb-1.5 block text-sm font-medium text-gray-700" htmlFor="roomUsername">
-                    Your name in this trip
-                  </label>
-                  <input
-                    id="roomUsername"
-                    type="text"
-                    placeholder="max. 20 characters"
-                    disabled={joining}
-                    maxLength={20}
-                    value={roomUsername}
-                    onChange={(event) => setRoomUsername(event.target.value)}
                     className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-gray-100"
                   />
 
