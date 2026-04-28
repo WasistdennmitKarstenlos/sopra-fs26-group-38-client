@@ -1,5 +1,6 @@
 import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
+import { FinalReport } from "@/types/finalReport";
 
 export class ApiService {
   private baseURL: string;
@@ -169,5 +170,14 @@ export class ApiService {
     voteType: "UP" | "DOWN",
   ): Promise<{ destinationId: number; upvotes: number; downvotes: number; score: number; userVote: "UP" | "DOWN" | null }> {
     return this.put(`/trips/${tripId}/destinations/${destinationId}/vote`, { voteType });
+  }
+
+  /**
+   * Fetch the compact final report for a finalized trip.
+   * @param tripId - The trip ID.
+   * @returns Final report payload.
+   */
+  public async getFinalReport(tripId: number | string): Promise<FinalReport> {
+    return this.get<FinalReport>(`/trips/${tripId}/final-report`);
   }
 }
