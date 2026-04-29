@@ -173,6 +173,16 @@ export class ApiService {
   }
 
   /**
+   * Finalize a trip with the selected destination.
+   * @param tripId - The trip ID.
+   * @param finalDestinationId - The destination that should become final.
+   * @returns Updated trip payload.
+   */
+  public async finalizeTrip(tripId: number | string, finalDestinationId: number): Promise<unknown> {
+    return this.put(`/trips/${tripId}/finalize?finalDestinationId=${finalDestinationId}`);
+  }
+
+  /**
    * Fetch the compact final report for a finalized trip.
    * @param tripId - The trip ID.
    * @returns Final report payload.
