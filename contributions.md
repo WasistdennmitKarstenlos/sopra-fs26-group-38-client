@@ -117,7 +117,7 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-05-01 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/128/changes/37025e6] | implementing activity deletion of activities in the frontend. | Users now can delete activities wth zero upvotes. This makes the dashboard better viewable |
-|  | Jean Leon Keim | 2026-05-01 | [2fb4e1b839433fb403f617806c015cee58e0f52a] | implementing activity deletion of activities in the backend. | Users now can delete activities wth zero upvotes. This makes the dashboard better viewable |
+|  | Jean Leon Keim | 2026-05-01 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/261/changes/2fb4e1b] | implementing activity deletion of activities in the backend. | Users now can delete activities wth zero upvotes. This makes the dashboard better viewable |
 
 ---
 
