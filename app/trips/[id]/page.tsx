@@ -111,6 +111,41 @@ export default function TripRoom() {
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<{ activity: ActivitySearchResult; destinationId: number } | null>(null);
+
+  const openDeleteConfirm = useCallback((activity: ActivitySearchResult, destinationId: number) => {
+    setActivityToDelete({ activity, destinationId });
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const closeDeleteConfirm = useCallback(() => {
+    setDeleteConfirmOpen(false);
+    setActivityToDelete(null);
+  }, []);
+
+  const confirmDeleteActivity = useCallback(async () => {
+    if (!activityToDelete || !trip) return;
+    const { activity, destinationId } = activityToDelete;
+    try {
+      await apiService.delete(`/trips/${trip.id}/destinations/${destinationId}/activities/${activity.id}`);
+      setActivitiesByDestination((current) => ({
+        ...current,
+        [destinationId]: (current[destinationId] ?? []).filter((a) => a.id !== activity.id),
+      }));
+      closeDeleteConfirm();
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 403) {
+        setFeedback({ type: "error", text: "Only the creator can delete this activity." });
+      } else if (status === 400) {
+        setFeedback({ type: "error", text: "Cannot delete an activity that has received votes." });
+      } else {
+        setFeedback({ type: "error", text: "Failed to delete activity. Please try again." });
+      }
+      closeDeleteConfirm();
+    }
+  }, [activityToDelete, apiService, closeDeleteConfirm, trip]);
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -679,11 +714,34 @@ export default function TripRoom() {
                       ) : (
                         [...items]
                           .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-                          .map((activity) => (
-                          <article
-                            key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
-                            className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
-                          >
+                          .map((activity) => {
+                            const isOwner =
+                              activity.createdBy !== null
+                              && activity.createdBy !== undefined
+                              && currentUserId
+                              && Number(currentUserId) === activity.createdBy;
+
+                            return (
+                              <article
+                                key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
+                                className="relative flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
+                              >
+                            {isOwner && (
+                              <button
+                                type="button"
+                                aria-label="Delete activity"
+                                title="Delete activity"
+                                className="absolute top-2 right-2 rounded-md p-1 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                                onClick={() => openDeleteConfirm(activity, destination.id)}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                  <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                  <path d="M9 4h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                  <path d="M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                              </button>
+                            )}
                             {activity.photoUrl ? (
                               <img
                                 src={activity.photoUrl}
@@ -707,8 +765,9 @@ export default function TripRoom() {
                                 <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
                               </div>
                             </div>
-                          </article>
-                        ))
+                              </article>
+                            );
+                          })
                       )}
                     </div>
 
@@ -852,6 +911,34 @@ export default function TripRoom() {
                     className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                   >
                     Close
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+
+          <Dialog open={deleteConfirmOpen} onClose={closeDeleteConfirm} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                <DialogTitle className="text-lg font-semibold text-gray-900">Delete activity</DialogTitle>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to delete this activity? This action cannot be undone.
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeDeleteConfirm}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteActivity}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                  >
+                    Delete
                   </button>
                 </div>
               </DialogPanel>
