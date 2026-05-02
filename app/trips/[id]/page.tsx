@@ -414,7 +414,7 @@ export default function TripRoom() {
       const normalized = {
         id: u.id,
         tripId: u.tripId,
-        name: u.name ?? u.destinationName ?? "",
+        destinationName: u.name ?? u.destinationName ?? "",
         proposedByUserId: u.proposedByUserId,
         activities: u.activities ?? [],
       };
@@ -789,7 +789,7 @@ export default function TripRoom() {
                         : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    {destination.name ?? destination.destinationName}
+                    {destination.destinationName}
                   </button>
 
                   {editingDestinationId === destination.id ? (
@@ -806,29 +806,15 @@ export default function TripRoom() {
                   ) : Number(currentUserId) === destination.proposedByUserId && (destination.activities?.length ?? 0) === 0 ? (
                     <button
                       type="button"
-                      onClick={() => startEditDestination(destination.id, destination.name ?? destination.destinationName ?? "")}
+                      onClick={() => startEditDestination(destination.id, destination.destinationName ?? "")}
                       className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                       title="Edit destination"
                     >
                       Edit
                     </button>
                   ) : null}
-                      // show edit only to the user who proposed the destination and if it has no activities
-                      Number(userId) === destination.proposedByUserId && (destination.activities?.length ?? 0) === 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => startEditDestination(destination.id, destination.name)}
-                          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                          title="Edit destination"
-                        >
-                          Edit
-                        </button>
-                      ) : null
-                    )}
-                  </div>
-                ))}
-              </div>
->>>>>>> 1df790d (US-08: Inline edit destination UI and normalization)
+                </div>
+              ))}
             </div>
           </header>
 
