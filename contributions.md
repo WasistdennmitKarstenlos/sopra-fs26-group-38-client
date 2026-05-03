@@ -107,8 +107,8 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-04-28 | [4d266b6](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4d266b6) | US-08: Backend edit destination endpoint with validation, permission checks, and conflict handling | Implements core backend functionality for destination updates including creator-only permission enforcement, activity conflict detection, and name uniqueness validation |
+|  | Ajay Sathish Shenoy | 2026-04-28 | [3c896ac](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/3c896ac) | US-08: Frontend inline edit destination UI with real-time state management and error handling | Implements destination edit form with permission checks, activity warnings, success/error feedback, and seamless state synchronization |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/548e3cccb23a826830495134eb6c2e9ba7b7df24 | Calculate Score for Destinations based on activities | Done to align implementation with user stories. |
