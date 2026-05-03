@@ -1,5 +1,6 @@
 import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
+import { Comment } from "@/types/comment";
 
 export class ApiService {
   private baseURL: string;
@@ -169,5 +170,33 @@ export class ApiService {
     voteType: "UP" | "DOWN",
   ): Promise<{ destinationId: number; upvotes: number; downvotes: number; score: number; userVote: "UP" | "DOWN" | null }> {
     return this.put(`/trips/${tripId}/destinations/${destinationId}/vote`, { voteType });
+  }
+
+  /**
+   * Fetch comments for an activity.
+   */
+  public async fetchComments(
+    tripId: number | string,
+    destinationId: number,
+    activityId: number,
+  ): Promise<Comment[]> {
+    return this.get<Comment[]>(
+      `/trips/${tripId}/destinations/${destinationId}/activities/${activityId}/comments`,
+    );
+  }
+
+  /**
+   * Create a comment for an activity.
+   */
+  public async createComment(
+    tripId: number | string,
+    destinationId: number,
+    activityId: number,
+    content: string,
+  ): Promise<Comment> {
+    return this.post<Comment>(
+      `/trips/${tripId}/destinations/${destinationId}/activities/${activityId}/comments`,
+      { content },
+    );
   }
 }
