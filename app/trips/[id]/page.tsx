@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
+import { Comment } from "@/types/comment";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
 import { LocationPicker } from "@/components/LocationPicker";
@@ -117,6 +118,11 @@ export default function TripRoom() {
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [activityToDelete, setActivityToDelete] = useState<{ activity: ActivitySearchResult; destinationId: number } | null>(null);
+  const [commentsByActivity, setCommentsByActivity] = useState<Record<number, Comment[]>>({});
+  const [selectedActivityForComment, setSelectedActivityForComment] = useState<number | null>(null);
+  const [commentInput, setCommentInput] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentFeedback, setCommentFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
   const openDeleteConfirm = useCallback((activity: ActivitySearchResult, destinationId: number) => {
     setActivityToDelete({ activity, destinationId });
@@ -664,6 +670,135 @@ export default function TripRoom() {
     setFeedback({ type: "error", text: error });
   }, []);
 
+  const formatCommentTime = useCallback((createdAt: string) => {
+    const parsed = new Date(createdAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return "just now";
+    }
+
+    const diffMs = Date.now() - parsed.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    if (diffMinutes < 1) return "just now";
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return parsed.toLocaleDateString();
+  }, []);
+
+  const fetchCommentsForActivity = useCallback(
+    async (destinationId: number, activityId: number) => {
+      if (!trip?.id) return;
+      try {
+        const comments = await apiService.fetchComments(trip.id, destinationId, activityId);
+        setCommentsByActivity((current) => ({ ...current, [activityId]: comments ?? [] }));
+      } catch {
+        setCommentsByActivity((current) => ({ ...current, [activityId]: current[activityId] ?? [] }));
+      }
+    },
+    [apiService, trip?.id],
+  );
+
+  const handleToggleComments = useCallback(
+    (destinationId: number, activityId?: number | null) => {
+      if (!activityId) return;
+
+      setCommentFeedback(null);
+      if (selectedActivityForComment === activityId) {
+        setSelectedActivityForComment(null);
+        setCommentInput("");
+        return;
+      }
+
+      setSelectedActivityForComment(activityId);
+      setCommentInput("");
+      void fetchCommentsForActivity(destinationId, activityId);
+    },
+    [fetchCommentsForActivity, selectedActivityForComment],
+  );
+
+  const handleSubmitComment = useCallback(
+    async (destinationId: number, activityId?: number | null) => {
+      if (!trip?.id || !activityId) return;
+
+      const content = commentInput.trim();
+      if (!content) {
+        setCommentFeedback({ type: "error", text: "Comment cannot be empty." });
+        return;
+      }
+
+      if (content.length > 280) {
+        setCommentFeedback({ type: "error", text: "Comment cannot exceed 280 characters." });
+        return;
+      }
+
+      try {
+        setCommentLoading(true);
+        setCommentFeedback(null);
+        const created = await apiService.createComment(trip.id, destinationId, activityId, content);
+        setCommentsByActivity((current) => ({
+          ...current,
+          [activityId]: [...(current[activityId] ?? []), created],
+        }));
+        setCommentInput("");
+        setCommentFeedback({ type: "success", text: "Comment added." });
+      } catch (error) {
+        const err = error as Error;
+        setCommentFeedback({ type: "error", text: err.message || "Failed to add comment." });
+      } finally {
+        setCommentLoading(false);
+      }
+    },
+    [apiService, commentInput, trip?.id],
+  );
+
+  const syncAllComments = useCallback(async () => {
+    if (!trip?.id) return;
+
+    const requests: Array<Promise<void>> = [];
+    Object.entries(activitiesByDestination).forEach(([destinationIdRaw, activities]) => {
+      const destinationId = Number(destinationIdRaw);
+      (activities ?? []).forEach((activity) => {
+        if (!activity.id) return;
+        requests.push(
+          apiService
+            .fetchComments(trip.id, destinationId, activity.id)
+            .then((comments) => {
+              setCommentsByActivity((current) => ({
+                ...current,
+                [activity.id as number]: comments ?? [],
+              }));
+            })
+            .catch(() => {
+              // Keep existing comments on polling errors.
+            }),
+        );
+      });
+    });
+
+    await Promise.all(requests);
+  }, [activitiesByDestination, apiService, trip?.id]);
+
+  useEffect(() => {
+    if (!trip?.id) return;
+    void syncAllComments();
+  }, [syncAllComments, trip?.id]);
+
+  useEffect(() => {
+    if (!trip?.id) return;
+    const intervalId = setInterval(() => {
+      void syncAllComments();
+    }, 10000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [syncAllComments, trip?.id]);
+
   const participantItems = participants.length > 0
     ? participants
     : username?.trim()
@@ -932,56 +1067,140 @@ export default function TripRoom() {
                               && activity.createdBy !== undefined
                               && currentUserId
                               && Number(currentUserId) === activity.createdBy;
+                            const activityId = activity.id ?? null;
+                            const activityComments = activityId ? (commentsByActivity[activityId] ?? []) : [];
+                            const isCommentsOpen = Boolean(activityId && selectedActivityForComment === activityId);
+                            const remainingChars = 280 - commentInput.length;
 
                             return (
                               <article
                                 key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
-                                className="relative flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
+                                className="relative rounded-xl border border-gray-200 bg-white p-4"
                               >
-                            {isOwner && (
-                              <button
-                                type="button"
-                                aria-label="Delete activity"
-                                title="Delete activity"
-                                className="absolute top-2 right-2 rounded-md p-1 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
-                                onClick={() => openDeleteConfirm(activity, destination.id)}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
-                                  <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                  <path d="M9 4h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                  <path d="M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                              </button>
-                            )}
-                            {activity.photoUrl ? (
-                              <img
-                                src={activity.photoUrl}
-                                alt={activity.name ?? "Event"}
-                                className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
-                            )}
-                            <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold text-gray-900" title={activity.name ?? undefined}>
-                                {activity.name ?? "Unnamed event"}
-                              </h3>
-                              <div className="mt-1 flex flex-col gap-y-0.5 text-xs text-gray-600">
-                                {activity.rating !== null && <span>Rating: {activity.rating}</span>}
-                                {activity.address && (
-                                  <span className="truncate" title={activity.address}>{activity.address}</span>
-                                )}
-                              </div>
-                              <div className="mt-3">
-                                <VoteControls
-                                  activity={activity}
-                                  onVoteUpdate={handleVoteUpdate}
-                                  onError={handleVoteError}
-                                  disabled={isReadOnlyMode}
-                                />
-                              </div>
-                            </div>
+                                <div className="flex gap-4">
+                                  {isOwner && (
+                                    <button
+                                      type="button"
+                                      aria-label="Delete activity"
+                                      title="Delete activity"
+                                      className="absolute top-2 right-2 rounded-md p-1 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                                      onClick={() => openDeleteConfirm(activity, destination.id)}
+                                    >
+                                      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                        <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        <path d="M9 4h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        <path d="M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                      </svg>
+                                    </button>
+                                  )}
+
+                                  {activity.photoUrl ? (
+                                    <img
+                                      src={activity.photoUrl}
+                                      alt={activity.name ?? "Event"}
+                                      className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                                    />
+                                  ) : (
+                                    <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <h3 className="truncate text-sm font-semibold text-gray-900" title={activity.name ?? undefined}>
+                                      {activity.name ?? "Unnamed event"}
+                                    </h3>
+                                    <div className="mt-1 flex flex-col gap-y-0.5 text-xs text-gray-600">
+                                      {activity.rating !== null && <span>Rating: {activity.rating}</span>}
+                                      {activity.address && (
+                                        <span className="truncate" title={activity.address}>{activity.address}</span>
+                                      )}
+                                    </div>
+                                    <div className="mt-3">
+                                      <VoteControls
+                                        activity={activity}
+                                        onVoteUpdate={handleVoteUpdate}
+                                        onError={handleVoteError}
+                                        disabled={isReadOnlyMode}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-3 border-t border-gray-100 pt-3">
+                                  <div className="flex items-center justify-between">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleComments(destination.id, activityId)}
+                                      disabled={!activityId}
+                                      className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                      {isCommentsOpen ? "Hide comments" : "Comments"}
+                                    </button>
+                                    <span className="text-xs text-gray-500">{activityComments.length} comment{activityComments.length === 1 ? "" : "s"}</span>
+                                  </div>
+
+                                  {isCommentsOpen && activityId && (
+                                    <div className="mt-3 space-y-3">
+                                      {activityComments.length > 0 ? (
+                                        <div className="max-h-36 space-y-2 overflow-y-auto pr-1">
+                                          {activityComments.map((comment) => (
+                                            <div key={comment.id} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+                                              <p className="text-xs text-gray-500">
+                                                <span className="font-semibold text-gray-700">{comment.username}</span>
+                                                {" "}
+                                                ·
+                                                {" "}
+                                                {formatCommentTime(comment.createdAt)}
+                                              </p>
+                                              <p className="mt-1 text-sm text-gray-800">{comment.content}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-gray-500">No comments yet.</p>
+                                      )}
+
+                                      <div className="space-y-2">
+                                        <textarea
+                                          value={commentInput}
+                                          onChange={(event) => {
+                                            setCommentInput(event.target.value);
+                                            if (commentFeedback?.type === "error") {
+                                              setCommentFeedback(null);
+                                            }
+                                          }}
+                                          maxLength={280}
+                                          rows={3}
+                                          placeholder="What are you thinking about this activity?"
+                                          className="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                        />
+                                        <div className="flex items-center justify-between">
+                                          <span className={`text-xs ${remainingChars <= 30 ? "text-amber-600" : "text-gray-500"}`}>
+                                            {commentInput.length}/280
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => void handleSubmitComment(destination.id, activityId)}
+                                            disabled={commentLoading || commentInput.trim().length === 0 || commentInput.trim().length > 280 || isReadOnlyMode}
+                                            className="rounded-md bg-[#2684ff] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                                          >
+                                            {commentLoading ? "Posting..." : "Post comment"}
+                                          </button>
+                                        </div>
+                                        {commentFeedback && (
+                                          <p
+                                            className={`rounded-md border px-2.5 py-1.5 text-xs ${
+                                              commentFeedback.type === "error"
+                                                ? "border-red-200 bg-red-50 text-red-700"
+                                                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                            }`}
+                                          >
+                                            {commentFeedback.text}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </article>
                             );
                           })
