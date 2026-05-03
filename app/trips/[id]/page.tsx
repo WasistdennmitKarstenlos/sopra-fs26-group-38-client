@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useRouter, useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -101,9 +102,12 @@ export default function TripRoom() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [newDestinationName, setNewDestinationName] = useState("");
   const [destinationLoading, setDestinationLoading] = useState(false);
+  const [selectedDestinationId, setSelectedDestinationId] = useState<number | null>(null);
   const [activitiesByDestination, setActivitiesByDestination] = useState<Record<number, ActivitySearchResult[]>>({});
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
+  const [editingDestinationId, setEditingDestinationId] = useState<number | null>(null);
+  const [editingDestinationName, setEditingDestinationName] = useState("");
   const [activityQuery, setActivityQuery] = useState("");
   const [activityLocation, setActivityLocation] = useState("");
   const [activityLocationCoords, setActivityLocationCoords] = useState("");
@@ -111,6 +115,41 @@ export default function TripRoom() {
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<{ activity: ActivitySearchResult; destinationId: number } | null>(null);
+
+  const openDeleteConfirm = useCallback((activity: ActivitySearchResult, destinationId: number) => {
+    setActivityToDelete({ activity, destinationId });
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const closeDeleteConfirm = useCallback(() => {
+    setDeleteConfirmOpen(false);
+    setActivityToDelete(null);
+  }, []);
+
+  const confirmDeleteActivity = useCallback(async () => {
+    if (!activityToDelete || !trip) return;
+    const { activity, destinationId } = activityToDelete;
+    try {
+      await apiService.delete(`/trips/${trip.id}/destinations/${destinationId}/activities/${activity.id}`);
+      setActivitiesByDestination((current) => ({
+        ...current,
+        [destinationId]: (current[destinationId] ?? []).filter((a) => a.id !== activity.id),
+      }));
+      closeDeleteConfirm();
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 403) {
+        setFeedback({ type: "error", text: "Only the creator can delete this activity." });
+      } else if (status === 400) {
+        setFeedback({ type: "error", text: "Cannot delete an activity that has received votes." });
+      } else {
+        setFeedback({ type: "error", text: "Failed to delete activity. Please try again." });
+      }
+      closeDeleteConfirm();
+    }
+  }, [activityToDelete, apiService, closeDeleteConfirm, trip]);
 
   const isHost = useMemo(() => {
     if (!trip) return false;
@@ -235,15 +274,39 @@ export default function TripRoom() {
         setDestinationLoading(true);
       }
 
-      const data = await apiService.get<Destination[]>(destinationListEndpoint);
-      setDestinations(data);
+      const data = await apiService.get<unknown[]>(destinationListEndpoint);
+      // Normalize destination data structure
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const normalized = (data as any[]).map((d) => ({
+        id: (d as any).id,
+        tripId: (d as any).tripId,
+        destinationName: (d as any).destinationName ?? (d as any).name ?? "",
+        name: (d as any).name ?? (d as any).destinationName ?? "",
+        proposedByUserId: (d as any).proposedByUserId,
+        upvotes: (d as any).upvotes,
+        downvotes: (d as any).downvotes,
+        score: (d as any).score,
+        userVote: (d as any).userVote,
+        activities: (d as any).activities ?? [],
+      }));
+      setDestinations(normalized);
+
+      if (normalized.length === 0) {
+        setSelectedDestinationId(null);
+      } else {
+        setSelectedDestinationId((current) => {
+          if (current !== null && normalized.some((destination) => destination.id === current)) {
+            return current;
+          }
+          return normalized[0].id;
+        });
+      }
+
       setActivitiesByDestination((current) => {
         const next: Record<number, ActivitySearchResult[]> = {};
-
-        data.forEach((destination) => {
+        normalized.forEach((destination) => {
           next[destination.id] = current[destination.id] ?? [];
         });
-
         return next;
       });
     } catch {
@@ -361,6 +424,49 @@ export default function TripRoom() {
       setFeedback({ type: "error", text: err.message || "Could not add destination." });
     }
   }, [apiService, destinationListEndpoint, isReadOnlyMode, newDestinationName]);
+
+  const startEditDestination = useCallback((destinationId: number, currentName: string) => {
+    setEditingDestinationId(destinationId);
+    setEditingDestinationName(currentName ?? "");
+  }, []);
+
+  const cancelEditDestination = useCallback(() => {
+    setEditingDestinationId(null);
+    setEditingDestinationName("");
+  }, []);
+
+  const saveEditedDestination = useCallback(async (destinationId: number) => {
+    if (!trip?.id) return;
+    if (!editingDestinationName.trim()) {
+      setFeedback({ type: "error", text: "Destination name cannot be empty." });
+      return;
+    }
+
+    try {
+      const updated = await apiService.put<unknown>(`/trips/${trip.id}/destinations/${destinationId}`, { name: editingDestinationName.trim() });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const u = updated as any;
+      const normalized = {
+        id: u.id,
+        tripId: u.tripId,
+        destinationName: u.name ?? u.destinationName ?? "",
+        proposedByUserId: u.proposedByUserId,
+        activities: u.activities ?? [],
+      };
+      setDestinations((current) => current.map((d) => (d.id === destinationId ? normalized : d)));
+      setFeedback({ type: "success", text: "Destination updated." });
+      cancelEditDestination();
+    } catch (err) {
+      const e = err as Error & { status?: number };
+      if (e.status === 403) {
+        setFeedback({ type: "error", text: "You are not allowed to edit this destination." });
+      } else if (e.status === 409) {
+        setFeedback({ type: "error", text: "Destination already has activities and cannot be edited." });
+      } else {
+        setFeedback({ type: "error", text: e.message || "Could not update destination." });
+      }
+    }
+  }, [apiService, trip?.id, editingDestinationName, cancelEditDestination]);
 
   const handleSearchActivities = useCallback(async () => {
     if (!trip?.id || activityModalDestinationId === null) {
@@ -700,6 +806,51 @@ export default function TripRoom() {
                 </button>
               )}
             </div>
+            <div className="flex flex-wrap gap-2">
+              {destinationLoading && (
+                <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">Loading destinations...</span>
+              )}
+              {!destinationLoading && destinations.length === 0 && (
+                <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">No destinations yet.</span>
+              )}
+              {destinations.map((destination) => (
+                <div key={destination.id} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDestinationId(destination.id)}
+                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                      selectedDestinationId === destination.id
+                        ? "border-blue-300 bg-blue-50 text-blue-700"
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {destination.destinationName}
+                  </button>
+
+                  {editingDestinationId === destination.id ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editingDestinationName}
+                        onChange={(e) => setEditingDestinationName(e.target.value)}
+                        className="rounded-md border border-gray-300 px-2 py-1 text-sm outline-none"
+                      />
+                      <button onClick={() => void saveEditedDestination(destination.id)} className="rounded-md bg-green-500 px-3 py-1 text-xs text-white">Save</button>
+                      <button onClick={cancelEditDestination} className="rounded-md border border-gray-300 px-3 py-1 text-xs">Cancel</button>
+                    </div>
+                  ) : Number(currentUserId) === destination.proposedByUserId && (destination.activities?.length ?? 0) === 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => startEditDestination(destination.id, destination.destinationName ?? "")}
+                      className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                      title="Edit destination"
+                    >
+                      Edit
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
           </header>
 
 
@@ -775,11 +926,34 @@ export default function TripRoom() {
                       ) : (
                         [...items]
                           .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-                          .map((activity) => (
-                          <article
-                            key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
-                            className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
-                          >
+                          .map((activity) => {
+                            const isOwner =
+                              activity.createdBy !== null
+                              && activity.createdBy !== undefined
+                              && currentUserId
+                              && Number(currentUserId) === activity.createdBy;
+
+                            return (
+                              <article
+                                key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
+                                className="relative flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
+                              >
+                            {isOwner && (
+                              <button
+                                type="button"
+                                aria-label="Delete activity"
+                                title="Delete activity"
+                                className="absolute top-2 right-2 rounded-md p-1 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                                onClick={() => openDeleteConfirm(activity, destination.id)}
+                              >
+                                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                  <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                  <path d="M9 4h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                  <path d="M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                              </button>
+                            )}
                             {activity.photoUrl ? (
                               <img
                                 src={activity.photoUrl}
@@ -808,8 +982,9 @@ export default function TripRoom() {
                                 />
                               </div>
                             </div>
-                          </article>
-                        ))
+                              </article>
+                            );
+                          })
                       )}
                     </div>
 
@@ -956,6 +1131,34 @@ export default function TripRoom() {
                     className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                   >
                     Close
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+
+          <Dialog open={deleteConfirmOpen} onClose={closeDeleteConfirm} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                <DialogTitle className="text-lg font-semibold text-gray-900">Delete activity</DialogTitle>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to delete this activity? This action cannot be undone.
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeDeleteConfirm}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteActivity}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                  >
+                    Delete
                   </button>
                 </div>
               </DialogPanel>
