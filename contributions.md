@@ -114,8 +114,8 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/548e3cccb23a826830495134eb6c2e9ba7b7df24 | Calculate Score for Desintaionts based on activities | Done to align implementation with user stories. |
 |             | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/3b6b9db27a8dabf6a14311d8b14bbd3a56d59c3a | Refine Design to match Figma | Done to match the design in Figma. |
 |             | Joel Marc Dickey | 2026-04-19 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/6c273102a555d36c8c942e6c833bd1a303c1beb2 | Update stream on new activity and on new vote | Needed for live updating and collaboration. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/263 | Report can be generated after Final Evaluation backend | Because the user can works afterwards with the report |
+|  | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/130 | Report can be generated after Final Evaluation frontend | Because the user can works afterwards with the report |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
