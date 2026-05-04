@@ -1,5 +1,5 @@
 export interface Trip {
-  id: string | null;
+  id: number | string;
   name: string | null;
   roomCode: string | null;
   hostId: string | null;
