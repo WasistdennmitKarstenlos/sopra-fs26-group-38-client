@@ -1786,6 +1786,11 @@ export default function TripRoom() {
                     className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                   >
                     Close
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
           <Dialog open={deleteConfirmOpen} onClose={closeDeleteConfirm} className="relative z-50">
             <DialogBackdrop className="fixed inset-0 bg-black/30" />
             <div className="fixed inset-0 flex items-center justify-center p-4">
