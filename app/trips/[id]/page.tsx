@@ -690,21 +690,8 @@ export default function TripRoom() {
     return parsed.toLocaleDateString();
   }, []);
 
-  const fetchCommentsForActivity = useCallback(
-    async (destinationId: number, activityId: number) => {
-      if (!trip?.id) return;
-      try {
-        const comments = await apiService.fetchComments(trip.id, destinationId, activityId);
-        setCommentsByActivity((current) => ({ ...current, [activityId]: comments ?? [] }));
-      } catch {
-        setCommentsByActivity((current) => ({ ...current, [activityId]: current[activityId] ?? [] }));
-      }
-    },
-    [apiService, trip?.id],
-  );
-
   const handleToggleComments = useCallback(
-    (destinationId: number, activityId?: number | null) => {
+    (_destinationId: number, activityId?: number | null) => {
       if (!activityId) return;
 
       setCommentFeedback(null);
@@ -716,9 +703,8 @@ export default function TripRoom() {
 
       setSelectedActivityForComment(activityId);
       setCommentInput("");
-      void fetchCommentsForActivity(destinationId, activityId);
     },
-    [fetchCommentsForActivity, selectedActivityForComment],
+    [selectedActivityForComment],
   );
 
   const handleSubmitComment = useCallback(
@@ -759,29 +745,22 @@ export default function TripRoom() {
   const syncAllComments = useCallback(async () => {
     if (!trip?.id) return;
 
-    const requests: Array<Promise<void>> = [];
-    Object.entries(activitiesByDestination).forEach(([destinationIdRaw, activities]) => {
-      const destinationId = Number(destinationIdRaw);
-      (activities ?? []).forEach((activity) => {
-        if (!activity.id) return;
-        requests.push(
-          apiService
-            .fetchComments(trip.id, destinationId, activity.id)
-            .then((comments) => {
-              setCommentsByActivity((current) => ({
-                ...current,
-                [activity.id as number]: comments ?? [],
-              }));
-            })
-            .catch(() => {
-              // Keep existing comments on polling errors.
-            }),
-        );
-      });
-    });
+    try {
+      const comments = await apiService.fetchTripComments(trip.id);
+      const grouped = comments.reduce<Record<number, Comment[]>>((accumulator, comment) => {
+        const activityId = Number(comment.activityId);
+        if (!Number.isFinite(activityId)) {
+          return accumulator;
+        }
 
-    await Promise.all(requests);
-  }, [activitiesByDestination, apiService, trip?.id]);
+        accumulator[activityId] = [...(accumulator[activityId] ?? []), comment];
+        return accumulator;
+      }, {});
+      setCommentsByActivity(grouped);
+    } catch {
+      // Keep existing comments if the batch refresh fails.
+    }
+  }, [apiService, trip?.id]);
 
   useEffect(() => {
     if (!trip?.id) return;

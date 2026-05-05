@@ -173,6 +173,13 @@ export class ApiService {
   }
 
   /**
+   * Fetch all comments for a trip.
+   */
+  public async fetchTripComments(tripId: number | string): Promise<Comment[]> {
+    return this.get<Comment[]>(`/trips/${tripId}/comments`);
+  }
+
+  /**
    * Fetch comments for an activity.
    */
   public async fetchComments(
