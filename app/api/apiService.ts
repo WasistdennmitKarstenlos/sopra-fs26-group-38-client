@@ -190,6 +190,8 @@ export class ApiService {
    */
   public async getFinalReport(tripId: number | string): Promise<FinalReport> {
     return this.get<FinalReport>(`/trips/${tripId}/final-report`);
+  }
+   /**
    * Fetch all comments for a trip.
    */
   public async fetchTripComments(tripId: number | string): Promise<Comment[]> {
