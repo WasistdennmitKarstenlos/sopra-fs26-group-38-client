@@ -1,5 +1,6 @@
 import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
+import { FinalReport } from "@/types/finalReport";
 import { Comment } from "@/types/comment";
 
 export class ApiService {
@@ -173,6 +174,24 @@ export class ApiService {
   }
 
   /**
+   * Finalize a trip with the selected destination.
+   * @param tripId - The trip ID.
+   * @param finalDestinationId - The destination that should become final.
+   * @returns Updated trip payload.
+   */
+  public async finalizeTrip(tripId: number | string, finalDestinationId: number): Promise<unknown> {
+    return this.put(`/trips/${tripId}/finalize?finalDestinationId=${finalDestinationId}`);
+  }
+
+  /**
+   * Fetch the compact final report for a finalized trip.
+   * @param tripId - The trip ID.
+   * @returns Final report payload.
+   */
+  public async getFinalReport(tripId: number | string): Promise<FinalReport> {
+    return this.get<FinalReport>(`/trips/${tripId}/final-report`);
+  }
+   /**
    * Fetch all comments for a trip.
    */
   public async fetchTripComments(tripId: number | string): Promise<Comment[]> {
