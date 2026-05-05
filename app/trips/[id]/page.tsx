@@ -1813,6 +1813,7 @@ export default function TripRoom() {
               </DialogPanel>
             </div>
           </Dialog>
+        </div>                    
       </main>
       <style jsx>{`
         .winner-confetti {
