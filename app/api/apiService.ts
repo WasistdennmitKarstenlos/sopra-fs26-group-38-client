@@ -1,6 +1,7 @@
 import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
 import { FinalReport } from "@/types/finalReport";
+import { Comment } from "@/types/comment";
 
 export class ApiService {
   private baseURL: string;
@@ -189,5 +190,37 @@ export class ApiService {
    */
   public async getFinalReport(tripId: number | string): Promise<FinalReport> {
     return this.get<FinalReport>(`/trips/${tripId}/final-report`);
+   * Fetch all comments for a trip.
+   */
+  public async fetchTripComments(tripId: number | string): Promise<Comment[]> {
+    return this.get<Comment[]>(`/trips/${tripId}/comments`);
+  }
+
+  /**
+   * Fetch comments for an activity.
+   */
+  public async fetchComments(
+    tripId: number | string,
+    destinationId: number,
+    activityId: number,
+  ): Promise<Comment[]> {
+    return this.get<Comment[]>(
+      `/trips/${tripId}/destinations/${destinationId}/activities/${activityId}/comments`,
+    );
+  }
+
+  /**
+   * Create a comment for an activity.
+   */
+  public async createComment(
+    tripId: number | string,
+    destinationId: number,
+    activityId: number,
+    content: string,
+  ): Promise<Comment> {
+    return this.post<Comment>(
+      `/trips/${tripId}/destinations/${destinationId}/activities/${activityId}/comments`,
+      { content },
+    );
   }
 }
