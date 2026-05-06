@@ -11,7 +11,7 @@ interface Props {
   className?: string;
 }
 
-const apiKey = process.env.GOOGLE_MAPS_API_KEY ?? "";
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 
 export function LocationPicker({ value, onChange, disabled, placeholder, className }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -23,7 +23,7 @@ export function LocationPicker({ value, onChange, disabled, placeholder, classNa
 
   useEffect(() => {
     if (!apiKey) {
-      console.warn("[LocationPicker] GOOGLE_MAPS_API_KEY is not set — autocomplete disabled.");
+      console.warn("[LocationPicker] NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set — autocomplete disabled.");
       return;
     }
 
