@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useRouter, useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
@@ -128,6 +128,7 @@ export default function TripRoom() {
   const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
   const [editingDestinationId, setEditingDestinationId] = useState<number | null>(null);
   const [editingDestinationName, setEditingDestinationName] = useState("");
+  const editingDestinationInputRef = useRef<HTMLInputElement | null>(null);
   const [activityQuery, setActivityQuery] = useState("");
   const [activityLocation, setActivityLocation] = useState("");
   const [activityLocationCoords, setActivityLocationCoords] = useState("");
@@ -141,6 +142,8 @@ export default function TripRoom() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [activityToDelete, setActivityToDelete] = useState<{ activity: ActivitySearchResult; destinationId: number } | null>(null);
+  const [deleteDestinationConfirmOpen, setDeleteDestinationConfirmOpen] = useState(false);
+  const [destinationToDelete, setDestinationToDelete] = useState<Destination | null>(null);
   const [commentsByActivity, setCommentsByActivity] = useState<Record<number, Comment[]>>({});
   const [selectedActivityForComment, setSelectedActivityForComment] = useState<number | null>(null);
   const [commentInput, setCommentInput] = useState("");
@@ -179,6 +182,52 @@ export default function TripRoom() {
       closeDeleteConfirm();
     }
   }, [activityToDelete, apiService, closeDeleteConfirm, trip]);
+
+  const handleDeleteDestination = useCallback(async () => {
+    if (!tripId || !destinationToDelete || !token) return;
+
+    try {
+      setDestinationLoading(true);
+      await apiService.deleteDestination(Number(tripId), destinationToDelete.id);
+
+      // Remove destination from UI
+      setDestinations((prev) => prev.filter((d) => d.id !== destinationToDelete.id));
+
+      // Clear selected if it was the deleted destination
+      if (selectedDestinationId === destinationToDelete.id) {
+        setSelectedDestinationId(null);
+      }
+
+      // Show success feedback
+      setFeedback({
+        type: "success",
+        text: `Destination "${destinationToDelete.destinationName}" deleted successfully.`,
+      });
+
+      // Close dialog
+      setDeleteDestinationConfirmOpen(false);
+      setDestinationToDelete(null);
+    } catch (err: unknown) {
+      const errorMessage = (err as { message?: string })?.message || "Failed to delete destination";
+      const status = (err as { status?: number })?.status;
+
+      let userMessage = errorMessage;
+      if (status === 403) {
+        userMessage = "You can only delete destinations you created.";
+      } else if (status === 409) {
+        userMessage = "This destination has activities. Please remove them first before deleting.";
+      } else if (status === 404) {
+        userMessage = "Destination not found. It may have already been deleted.";
+      }
+
+      setFeedback({
+        type: "error",
+        text: userMessage,
+      });
+    } finally {
+      setDestinationLoading(false);
+    }
+  }, [tripId, destinationToDelete, token, apiService, selectedDestinationId]);
 
   const isHost = useMemo(() => {
     if (!trip) return false;
@@ -373,7 +422,9 @@ export default function TripRoom() {
       } catch (error) {
         const err = error as Error & { status?: number };
         console.error("Failed to load final report:", err);
-        if (err.status !== 404) {
+        if (err.status === 404) {
+          setReportError("Final report is not available yet.");
+        } else {
           setReportError(err.message || "Failed to load final report.");
         }
       } finally {
@@ -495,15 +546,16 @@ export default function TripRoom() {
     setEditingDestinationName("");
   }, []);
 
-  const saveEditedDestination = useCallback(async (destinationId: number) => {
+  const saveEditedDestination = useCallback(async (destinationId: number, rawName?: string) => {
     if (!trip?.id) return;
-    if (!editingDestinationName.trim()) {
+    const nextName = (rawName ?? editingDestinationInputRef.current?.value ?? editingDestinationName).trim();
+    if (!nextName) {
       setFeedback({ type: "error", text: "Destination name cannot be empty." });
       return;
     }
 
     try {
-      const updated = await apiService.put<unknown>(`/trips/${trip.id}/destinations/${destinationId}`, { name: editingDestinationName.trim() });
+      const updated = await apiService.put<unknown>(`/trips/${trip.id}/destinations/${destinationId}`, { destinationName: nextName });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const u = updated as any;
       const normalized = {
@@ -1178,27 +1230,7 @@ export default function TripRoom() {
                     {destination.destinationName}
                   </button>
 
-                  {editingDestinationId === destination.id ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={editingDestinationName}
-                        onChange={(e) => setEditingDestinationName(e.target.value)}
-                        className="rounded-md border border-gray-300 px-2 py-1 text-sm outline-none"
-                      />
-                      <button onClick={() => void saveEditedDestination(destination.id)} className="rounded-md bg-green-500 px-3 py-1 text-xs text-white">Save</button>
-                      <button onClick={cancelEditDestination} className="rounded-md border border-gray-300 px-3 py-1 text-xs">Cancel</button>
-                    </div>
-                  ) : Number(currentUserId) === destination.proposedByUserId && (destination.activities?.length ?? 0) === 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => startEditDestination(destination.id, destination.destinationName ?? "")}
-                      className="rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                      title="Edit destination"
-                    >
-                      Edit
-                    </button>
-                  ) : null}
+                  {/* selection button only - edit/delete moved into cards */}
                 </div>
               ))}
             </div>
@@ -1321,9 +1353,42 @@ export default function TripRoom() {
                       </div>
                     )}
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="truncate text-3xl font-bold text-gray-900" title={destination.destinationName ?? undefined}>{destination.destinationName}</h2>
-                        <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                      <div className="min-w-0 flex-1">
+                        {editingDestinationId === destination.id ? (
+                          <>
+                            <input
+                              type="text"
+                              value={editingDestinationName}
+                              ref={editingDestinationInputRef}
+                              onChange={(event) => setEditingDestinationName(event.target.value)}
+                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-3xl font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                              aria-label="Destination name"
+                              autoFocus
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void saveEditedDestination(destination.id, editingDestinationInputRef.current?.value)}
+                                className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelEditDestination}
+                                className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <h2 className="truncate text-3xl font-bold text-gray-900" title={destination.destinationName ?? undefined}>{destination.destinationName}</h2>
+                            <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                          </>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         {isWinner && (
@@ -1336,6 +1401,42 @@ export default function TripRoom() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Action buttons under the score */}
+                    {editingDestinationId !== destination.id && (
+                      <div className="mt-4 flex gap-2">
+                        {(() => {
+                          const canModify =
+                            currentUserId !== undefined &&
+                            Number(currentUserId) === Number(destination.proposedByUserId) &&
+                            (destination.activities?.length ?? 0) === 0 &&
+                            !isReadOnlyMode;
+                          return canModify;
+                        })() && (
+                          <>
+                          <button
+                            type="button"
+                            onClick={() => startEditDestination(destination.id, destination.destinationName ?? "")}
+                            className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            title="Edit destination"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDestinationToDelete(destination);
+                              setDeleteDestinationConfirmOpen(true);
+                            }}
+                            className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 hover:bg-red-100"
+                            title="Delete destination"
+                          >
+                            Delete
+                          </button>
+                          </>
+                        )}
+                      </div>
+                    )}
 
                     <div className="mt-5 space-y-4">
                       {items.length === 0 ? (
@@ -1768,7 +1869,7 @@ export default function TripRoom() {
                   )}
                 </div>
 
-                <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex justify-between">
+                <div className="sticky bottom-0 border-t border-gray-200 bg-gray-50 px-6 py-4 flex justify-between">
                   <button
                     type="button"
                     onClick={handleDownloadReport}
@@ -1813,6 +1914,35 @@ export default function TripRoom() {
                     className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
                   >
                     Delete
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+
+          <Dialog open={deleteDestinationConfirmOpen} onClose={() => { setDeleteDestinationConfirmOpen(false); setDestinationToDelete(null); }} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                <DialogTitle className="text-lg font-semibold text-gray-900">Delete Destination</DialogTitle>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to delete <span className="font-semibold">{destinationToDelete?.destinationName}</span>? This action cannot be undone.
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setDeleteDestinationConfirmOpen(false); setDestinationToDelete(null); }}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteDestination()}
+                    disabled={destinationLoading}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {destinationLoading ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </DialogPanel>

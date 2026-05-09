@@ -225,4 +225,16 @@ export class ApiService {
       { content },
     );
   }
+
+  /**
+   * Delete a destination.
+   * @param tripId - The trip ID.
+   * @param destinationId - The destination ID to delete.
+   */
+  public async deleteDestination(
+    tripId: number | string,
+    destinationId: number,
+  ): Promise<void> {
+    return this.delete(`/trips/${tripId}/destinations/${destinationId}`);
+  }
 }
