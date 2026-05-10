@@ -132,7 +132,7 @@ TA meeting slot: May 11, 2026 (08:00-10:00)
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-21 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/7f389a0ab0b0cb4bcdf9c6ac972ce91d300bba38 | Location picker | Maps API requires location to be coordinates. Thus we require a google search api integration for the location. |
-|             | Joel Marc Dickey | 2026-04-21 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/7f389a0ab0b0cb4bcdf9c6ac972ce91d300bba38 | Streamline design of join trip modal to match Figma. | Consistent branding. |
+|             | Joel Marc Dickey | 2026-04-21 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/0c31db4964c117925be260c78bf595af4f7aac08 | Streamline design of join trip modal to match Figma. | Consistent branding. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-10 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/267 | Backend implementation of destination deletion | Allows user to delete his own destination if not wanted |
 |  | Lennart Robin Zirn | 2026-05-10 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/133 | Frontend implementation of destination deletion | Allows user to delete his own destination if not wanted |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
