@@ -91,7 +91,7 @@ TA meeting slot: April 13, 2026 (08:00-10:00) [No contributions needed Easter]
 
 ---
 
-## Contributions Week 2 - March 30, 2026 to April 13, 2026
+## [Adjust and Delete] Contributions Week 2 - March 30, 2026 to April 13, 2026
 
 TA meeting slot: April 13, 2026 (08:00-10:00)
 
@@ -177,7 +177,7 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 ---
 
-## Contributions Week 4 - April 20, 2026 to May 4, 2026
+## [Adjust and Delete] Contributions Week 4 - April 20, 2026 to May 4, 2026
 
 TA meeting slot: May 4, 2026 (08:00-10:00)
 
