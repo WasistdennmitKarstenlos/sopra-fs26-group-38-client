@@ -53,6 +53,44 @@ TA meeting slot: March 30, 2026 (08:00-10:00)
 
 ---
 
+## Contributions Week 2 - March 30, 2026 to April 6, 2026
+
+TA meeting slot: April 6, 2026 (08:00-10:00) No TA meeting
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
+|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@itsmeroya]** | Arjun Roy | |  |  |  |
+|  | Arjun Roy |  |  |  ||
+| **[@3xpr]** | Joel Marc Dickey |  | | | |
+|  | Joel Marc Dickey |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
+|  | Lennart Robin Zirn |  |  |  |  |
+| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
+|  | Jean Leon Keim |  |  |  | |
+
+---
+
+## Contributions Week 3 - April 6, 2026 to April 13, 2026
+
+TA meeting slot: April 13, 2026 (08:00-10:00) [No contributions needed Easter]
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
+|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@itsmeroya]** | Arjun Roy | |  |  |  |
+|  | Arjun Roy |  |  |  ||
+| **[@3xpr]** | Joel Marc Dickey |  | | | |
+|  | Joel Marc Dickey |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
+|  | Lennart Robin Zirn |  |  |  |  |
+| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
+|  | Jean Leon Keim |  |  |  | |
+
+---
+
 ## Contributions Week 2 - March 30, 2026 to April 13, 2026
 
 TA meeting slot: April 13, 2026 (08:00-10:00)
@@ -79,7 +117,7 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 |  | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/132 | Tests for login/logout and improve some some small stuff | To make sure everything works as intended in the backend |
 ---
 
-## Contributions Week 3 - April 13, 2026 to April 20, 2026
+## Contributions Week 4 - April 13, 2026 to April 20, 2026
 
 TA meeting slot: April 20, 2026 (08:00-10:00)
 
@@ -98,6 +136,44 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 |  | Lennart Robin Zirn | 2026-04-17 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/153) | Voting System backend integration | The User can upvote and downvote on destinations and activities |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/70/changes/b1bc95b | Implementation of join page, aswell as validation in the frontend| Joining trips is a central function of the webApp |
 |  | Jean Leon Keim | 2026-04-16 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/152/changes/23669a4 | add join trip endpoint with validation and membership rules in the backend | to ensure that the right trip is joined and that every member has a different tripname |
+
+---
+
+## Contributions Week 5 - April 20, 2026 to April 27, 2026
+
+TA meeting slot: April 27, 2026 (08:00-10:00) [No TA Meeting]
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
+|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@itsmeroya]** | Arjun Roy | |  |  |  |
+|  | Arjun Roy |  |  |  ||
+| **[@3xpr]** | Joel Marc Dickey |  | | | |
+|  | Joel Marc Dickey |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
+|  | Lennart Robin Zirn |  |  |  |  |
+| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
+|  | Jean Leon Keim |  |  |  | |
+
+---
+
+## Contributions Week 6 - April 27, 2026 to May 4, 2026
+
+TA meeting slot: May 4, 2026 (08:00-10:00) 
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
+|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@itsmeroya]** | Arjun Roy | |  |  |  |
+|  | Arjun Roy |  |  |  ||
+| **[@3xpr]** | Joel Marc Dickey |  | | | |
+|  | Joel Marc Dickey |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
+|  | Lennart Robin Zirn |  |  |  |  |
+| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
+|  | Jean Leon Keim |  |  |  | |
 
 ---
 
@@ -121,7 +197,7 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 ---
 
-## Contributions Week 5 - May 4, 2026 to May 11, 2026
+## Contributions Week 7 - May 4, 2026 to May 11, 2026
 
 TA meeting slot: May 11, 2026 (08:00-10:00)
 
@@ -140,7 +216,7 @@ TA meeting slot: May 11, 2026 (08:00-10:00)
 
 ---
 
-## Contributions Week 6 - May 11, 2026 to May 18, 2026
+## Contributions Week 8 - May 11, 2026 to May 18, 2026
 
 TA meeting slot: May 18, 2026 (08:00-10:00)
 
