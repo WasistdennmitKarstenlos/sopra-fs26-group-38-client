@@ -237,4 +237,32 @@ export class ApiService {
   ): Promise<void> {
     return this.delete(`/trips/${tripId}/destinations/${destinationId}`);
   }
+
+  /**
+   * Get current user by ID.
+   * @param userId - The user ID.
+   * @returns User data.
+   */
+  public async getCurrentUser(userId: number): Promise<{ id: number; username: string }> {
+    return this.get(`/users/${userId}`);
+  }
+
+  /**
+   * Update username for the current user.
+   * @param newUsername - The new username.
+   * @returns Updated user data.
+   */
+  public async updateUsername(newUsername: string): Promise<{ id: number; username: string }> {
+    return this.put(`/users/me/username`, { newUsername });
+  }
+
+  /**
+   * Update password for the current user.
+   * @param currentPassword - The current password for verification.
+   * @param newPassword - The new password.
+   * @returns Response with potential new token or refresh instruction.
+   */
+  public async updatePassword(currentPassword: string, newPassword: string): Promise<{ message: string; token?: string }> {
+    return this.put(`/users/me/password`, { currentPassword, newPassword });
+  }
 }
