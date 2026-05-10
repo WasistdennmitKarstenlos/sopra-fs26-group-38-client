@@ -14,6 +14,7 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { Sidebar } from "@/components/Sidebar";
 import { VoteControls } from "@/components/VoteControls";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { MapPinIcon } from "@heroicons/react/24/outline";
 import { getApiDomain } from "@/utils/domain";
 
 type StreamEvent = {
@@ -751,6 +752,14 @@ export default function TripRoom() {
     }
   }, [apiService, canStartFinalEvaluation, trip?.id, winnerDestination]);
 
+  // Confirmation dialog state for finalization
+  const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
+
+  const confirmFinalize = useCallback(async () => {
+    setConfirmFinalizeOpen(false);
+    await handleStartFinalEvaluation();
+  }, [handleStartFinalEvaluation]);
+
   const handleDownloadReport = useCallback(() => {
     if (!finalReport) return;
 
@@ -1199,14 +1208,42 @@ export default function TripRoom() {
               </div>
 
               {canShowFinalEvaluationButton && (
-                <button
-                  type="button"
-                  onClick={handleStartFinalEvaluation}
-                  disabled={!canStartFinalEvaluation}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Final Evaluation
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmFinalizeOpen(true)}
+                    disabled={!canStartFinalEvaluation}
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Final Evaluation
+                  </button>
+
+                  <Dialog open={confirmFinalizeOpen} onClose={() => setConfirmFinalizeOpen(false)} className="relative z-50">
+                    <DialogBackdrop className="fixed inset-0 bg-black/30" />
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                      <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                        <DialogTitle className="text-lg font-semibold text-gray-900">Confirm Final Evaluation</DialogTitle>
+                        <p className="mt-2 text-sm text-gray-600">Finalizing the trip will make it read-only and cannot be undone. Are you sure you want to proceed?</p>
+                        <div className="mt-6 flex justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setConfirmFinalizeOpen(false)}
+                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void confirmFinalize()}
+                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                      </DialogPanel>
+                    </div>
+                  </Dialog>
+                </>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -1510,14 +1547,29 @@ export default function TripRoom() {
 
                                 <div className="mt-3 border-t border-gray-100 pt-3">
                                   <div className="flex items-center justify-between">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleToggleComments(destination.id, activityId)}
-                                      disabled={!activityId}
-                                      className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                      {isCommentsOpen ? "Hide comments" : "Comments"}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleComments(destination.id, activityId)}
+                                        disabled={!activityId}
+                                        className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                      >
+                                        {isCommentsOpen ? "Hide comments" : "Comments"}
+                                      </button>
+
+                                      {(activity.address || (activity.latitude && activity.longitude)) && (
+                                        <a
+                                          href={activity.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.address)}` : `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                        >
+                                          <MapPinIcon className="h-4 w-4 text-gray-600" aria-hidden="true" />
+                                          Open in Maps
+                                        </a>
+                                      )}
+                                    </div>
+
                                     <span className="text-xs text-gray-500">{activityComments.length} comment{activityComments.length === 1 ? "" : "s"}</span>
                                   </div>
 
