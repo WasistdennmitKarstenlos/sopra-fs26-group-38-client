@@ -135,8 +135,8 @@ TA meeting slot: May 11, 2026 (08:00-10:00)
 |             | Joel Marc Dickey | 2026-04-21 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/0c31db4964c117925be260c78bf595af4f7aac08 | Streamline design of join trip modal to match Figma. | Consistent branding. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-10 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/267 | Backend implementation of destination deletion | Allows user to delete his own destination if not wanted |
 |  | Lennart Robin Zirn | 2026-05-10 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/133 | Frontend implementation of destination deletion | Allows user to delete his own destination if not wanted |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-05-05 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/265/changes/9e42406 | Adding general test coverage for flows that had low test coverage | Beeing sure that the code works is very important |
+|  | Jean Leon Keim | 2026-05-10 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/271/changes/5a54f6b | Adding tests for the REST endpoints which weren't tested before. | Beeing sure that the code works is very important |
 
 ---
 
