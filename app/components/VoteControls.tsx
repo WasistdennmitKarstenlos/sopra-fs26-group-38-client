@@ -8,15 +8,16 @@ interface VoteControlsProps {
   activity: ActivitySearchResult;
   onVoteUpdate: (updatedActivity: ActivitySearchResult) => void;
   onError?: (error: string) => void;
+  disabled?: boolean;
 }
 
-export function VoteControls({ activity, onVoteUpdate, onError }: VoteControlsProps) {
+export function VoteControls({ activity, onVoteUpdate, onError, disabled = false }: VoteControlsProps) {
   const apiService = useApi();
   const [isVoting, setIsVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleVote = async (voteType: "UP" | "DOWN") => {
-    if (!activity.id || isVoting) return;
+    if (!activity.id || isVoting || disabled) return;
 
     setIsVoting(true);
     setError(null);
@@ -66,12 +67,12 @@ export function VoteControls({ activity, onVoteUpdate, onError }: VoteControlsPr
         <button
           type="button"
           onClick={() => handleVote("UP")}
-          disabled={isVoting}
+          disabled={isVoting || disabled}
           className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition ${
             userVote === "UP"
               ? "bg-green-100 text-green-700 ring-1 ring-green-200"
               : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-          } ${isVoting ? "cursor-not-allowed opacity-60" : ""}`}
+          } ${isVoting || disabled ? "cursor-not-allowed opacity-60" : ""}`}
           title="Upvote this activity"
         >
           <svg
@@ -94,12 +95,12 @@ export function VoteControls({ activity, onVoteUpdate, onError }: VoteControlsPr
         <button
           type="button"
           onClick={() => handleVote("DOWN")}
-          disabled={isVoting}
+          disabled={isVoting || disabled}
           className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium transition ${
             userVote === "DOWN"
               ? "bg-red-100 text-red-700 ring-1 ring-red-200"
               : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-          } ${isVoting ? "cursor-not-allowed opacity-60" : ""}`}
+          } ${isVoting || disabled ? "cursor-not-allowed opacity-60" : ""}`}
           title="Downvote this activity"
         >
           <svg

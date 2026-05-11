@@ -1,5 +1,7 @@
 import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
+import { FinalReport } from "@/types/finalReport";
+import { Comment } from "@/types/comment";
 
 export class ApiService {
   private baseURL: string;
@@ -169,5 +171,70 @@ export class ApiService {
     voteType: "UP" | "DOWN",
   ): Promise<{ destinationId: number; upvotes: number; downvotes: number; score: number; userVote: "UP" | "DOWN" | null }> {
     return this.put(`/trips/${tripId}/destinations/${destinationId}/vote`, { voteType });
+  }
+
+  /**
+   * Finalize a trip with the selected destination.
+   * @param tripId - The trip ID.
+   * @param finalDestinationId - The destination that should become final.
+   * @returns Updated trip payload.
+   */
+  public async finalizeTrip(tripId: number | string, finalDestinationId: number): Promise<unknown> {
+    return this.put(`/trips/${tripId}/finalize?finalDestinationId=${finalDestinationId}`);
+  }
+
+  /**
+   * Fetch the compact final report for a finalized trip.
+   * @param tripId - The trip ID.
+   * @returns Final report payload.
+   */
+  public async getFinalReport(tripId: number | string): Promise<FinalReport> {
+    return this.get<FinalReport>(`/trips/${tripId}/final-report`);
+  }
+   /**
+   * Fetch all comments for a trip.
+   */
+  public async fetchTripComments(tripId: number | string): Promise<Comment[]> {
+    return this.get<Comment[]>(`/trips/${tripId}/comments`);
+  }
+
+  /**
+   * Fetch comments for an activity.
+   */
+  public async fetchComments(
+    tripId: number | string,
+    destinationId: number,
+    activityId: number,
+  ): Promise<Comment[]> {
+    return this.get<Comment[]>(
+      `/trips/${tripId}/destinations/${destinationId}/activities/${activityId}/comments`,
+    );
+  }
+
+  /**
+   * Create a comment for an activity.
+   */
+  public async createComment(
+    tripId: number | string,
+    destinationId: number,
+    activityId: number,
+    content: string,
+  ): Promise<Comment> {
+    return this.post<Comment>(
+      `/trips/${tripId}/destinations/${destinationId}/activities/${activityId}/comments`,
+      { content },
+    );
+  }
+
+  /**
+   * Delete a destination.
+   * @param tripId - The trip ID.
+   * @param destinationId - The destination ID to delete.
+   */
+  public async deleteDestination(
+    tripId: number | string,
+    destinationId: number,
+  ): Promise<void> {
+    return this.delete(`/trips/${tripId}/destinations/${destinationId}`);
   }
 }

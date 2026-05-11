@@ -1,21 +1,44 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useRouter, useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { ActivitySearchResult } from "@/types/activity";
+import { Comment } from "@/types/comment";
 import { Destination } from "@/types/destination";
 import { Trip } from "@/types/trip";
+import { FinalReport } from "@/types/finalReport";
+import { LocationPicker } from "@/components/LocationPicker";
 import { Sidebar } from "@/components/Sidebar";
 import { VoteControls } from "@/components/VoteControls";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import { MapPinIcon } from "@heroicons/react/24/outline";
 import { getApiDomain } from "@/utils/domain";
 
 type StreamEvent = {
   event?: string;
   data: string;
 };
+
+async function loadImageDataUrl(imagePath: string): Promise<string> {
+  const response = await fetch(imagePath);
+  const blob = await response.blob();
+
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Failed to read image data."));
+      }
+    };
+    reader.onerror = () => reject(new Error("Failed to load image data."));
+    reader.readAsDataURL(blob);
+  });
+}
 
 const realtimeEndpoints = (tripId: string) => [
   `/trips/${tripId}/stream`,
@@ -80,7 +103,7 @@ async function readStreamEvents(
 
 interface TripParticipant {
   userId: number;
-  roomUsername: string;
+  username: string;
 }
 
 export default function TripRoom() {
@@ -95,19 +118,149 @@ export default function TripRoom() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [loading, setLoading] = useState(true);
+  const { value: sidebarCollapsed, set: setSidebarCollapsed } = useLocalStorage<boolean>("sidebarCollapsed", false);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [newDestinationName, setNewDestinationName] = useState("");
   const [destinationLoading, setDestinationLoading] = useState(false);
+  const [selectedDestinationId, setSelectedDestinationId] = useState<number | null>(null);
   const [activitiesByDestination, setActivitiesByDestination] = useState<Record<number, ActivitySearchResult[]>>({});
   const [activityModalOpen, setActivityModalOpen] = useState(false);
   const [activityModalDestinationId, setActivityModalDestinationId] = useState<number | null>(null);
+  const [editingDestinationId, setEditingDestinationId] = useState<number | null>(null);
+  const [editingDestinationName, setEditingDestinationName] = useState("");
+  const editingDestinationInputRef = useRef<HTMLInputElement | null>(null);
   const [activityQuery, setActivityQuery] = useState("");
   const [activityLocation, setActivityLocation] = useState("");
-  const [activityRadius, setActivityRadius] = useState("");
+  const [activityLocationCoords, setActivityLocationCoords] = useState("");
+  const [activityRadius, setActivityRadius] = useState("2");
   const [activityResults, setActivityResults] = useState<ActivitySearchResult[] | null>(null);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityFeedback, setActivityFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [finalReport, setFinalReport] = useState<FinalReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<{ activity: ActivitySearchResult; destinationId: number } | null>(null);
+  const [deleteDestinationConfirmOpen, setDeleteDestinationConfirmOpen] = useState(false);
+  const [destinationToDelete, setDestinationToDelete] = useState<Destination | null>(null);
+  const [commentsByActivity, setCommentsByActivity] = useState<Record<number, Comment[]>>({});
+  const [selectedActivityForComment, setSelectedActivityForComment] = useState<number | null>(null);
+  const [commentInput, setCommentInput] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentFeedback, setCommentFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
+
+  const openDeleteConfirm = useCallback((activity: ActivitySearchResult, destinationId: number) => {
+    setActivityToDelete({ activity, destinationId });
+    setDeleteConfirmOpen(true);
+  }, []);
+
+  const closeDeleteConfirm = useCallback(() => {
+    setDeleteConfirmOpen(false);
+    setActivityToDelete(null);
+  }, []);
+
+  const confirmDeleteActivity = useCallback(async () => {
+    if (!activityToDelete || !trip) return;
+    const { activity, destinationId } = activityToDelete;
+    try {
+      await apiService.delete(`/trips/${trip.id}/destinations/${destinationId}/activities/${activity.id}`);
+      setActivitiesByDestination((current) => ({
+        ...current,
+        [destinationId]: (current[destinationId] ?? []).filter((a) => a.id !== activity.id),
+      }));
+      closeDeleteConfirm();
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 403) {
+        setFeedback({ type: "error", text: "Only the creator can delete this activity." });
+      } else if (status === 400) {
+        setFeedback({ type: "error", text: "Cannot delete an activity that has received votes." });
+      } else {
+        setFeedback({ type: "error", text: "Failed to delete activity. Please try again." });
+      }
+      closeDeleteConfirm();
+    }
+  }, [activityToDelete, apiService, closeDeleteConfirm, trip]);
+
+  const handleDeleteDestination = useCallback(async () => {
+    if (!tripId || !destinationToDelete || !token) return;
+
+    try {
+      setDestinationLoading(true);
+      await apiService.deleteDestination(Number(tripId), destinationToDelete.id);
+
+      // Remove destination from UI
+      setDestinations((prev) => prev.filter((d) => d.id !== destinationToDelete.id));
+
+      // Clear selected if it was the deleted destination
+      if (selectedDestinationId === destinationToDelete.id) {
+        setSelectedDestinationId(null);
+      }
+
+      // Show success feedback
+      setFeedback({
+        type: "success",
+        text: `Destination "${destinationToDelete.destinationName}" deleted successfully.`,
+      });
+
+      // Close dialog
+      setDeleteDestinationConfirmOpen(false);
+      setDestinationToDelete(null);
+    } catch (err: unknown) {
+      const errorMessage = (err as { message?: string })?.message || "Failed to delete destination";
+      const status = (err as { status?: number })?.status;
+
+      let userMessage = errorMessage;
+      if (status === 403) {
+        userMessage = "You can only delete destinations you created.";
+      } else if (status === 409) {
+        userMessage = "This destination has activities. Please remove them first before deleting.";
+      } else if (status === 404) {
+        userMessage = "Destination not found. It may have already been deleted.";
+      }
+
+      setFeedback({
+        type: "error",
+        text: userMessage,
+      });
+    } finally {
+      setDestinationLoading(false);
+    }
+  }, [tripId, destinationToDelete, token, apiService, selectedDestinationId]);
+
+  const isHost = useMemo(() => {
+    if (!trip) return false;
+    if (typeof trip.isHost === "boolean") return trip.isHost;
+    return String(trip.hostId ?? "") === String(currentUserId ?? "");
+  }, [currentUserId, trip]);
+
+  const isEvaluationMode = Boolean(trip?.evaluationMode ?? (trip?.status === "EVALUATION"));
+  const isFinalized = Boolean(trip?.finalized ?? (trip?.status === "FINALIZED"));
+  const hasFinalResult = Boolean(trip?.finalized || trip?.status === "FINALIZED" || trip?.finalDestinationId);
+  const isReadOnlyMode = isEvaluationMode || isFinalized;
+
+  const sortedDestinations = useMemo(
+    () => [...destinations].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
+    [destinations],
+  );
+
+  const winnerDestination = useMemo(() => {
+    if (!trip || sortedDestinations.length === 0) return null;
+    const finalId = trip.finalDestinationId ? Number(trip.finalDestinationId) : null;
+    if (finalId !== null) {
+      const finalMatch = sortedDestinations.find((destination) => destination.id === finalId);
+      if (finalMatch) return finalMatch;
+    }
+    return sortedDestinations[0] ?? null;
+  }, [sortedDestinations, trip]);
+
+  const destinationExists = sortedDestinations.length > 0;
+  const canStartFinalEvaluation = Boolean(
+    trip && isHost && destinationExists && !isEvaluationMode && !isFinalized,
+  );
+  const canShowFinalEvaluationButton = Boolean(trip?.canEnterFinalEvaluation || canStartFinalEvaluation);
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -202,15 +355,39 @@ export default function TripRoom() {
         setDestinationLoading(true);
       }
 
-      const data = await apiService.get<Destination[]>(destinationListEndpoint);
-      setDestinations(data);
+      const data = await apiService.get<unknown[]>(destinationListEndpoint);
+      // Normalize destination data structure
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const normalized = (data as any[]).map((d) => ({
+        id: (d as any).id,
+        tripId: (d as any).tripId,
+        destinationName: (d as any).destinationName ?? (d as any).name ?? "",
+        name: (d as any).name ?? (d as any).destinationName ?? "",
+        proposedByUserId: (d as any).proposedByUserId,
+        upvotes: (d as any).upvotes,
+        downvotes: (d as any).downvotes,
+        score: (d as any).score,
+        userVote: (d as any).userVote,
+        activities: (d as any).activities ?? [],
+      }));
+      setDestinations(normalized);
+
+      if (normalized.length === 0) {
+        setSelectedDestinationId(null);
+      } else {
+        setSelectedDestinationId((current) => {
+          if (current !== null && normalized.some((destination) => destination.id === current)) {
+            return current;
+          }
+          return normalized[0].id;
+        });
+      }
+
       setActivitiesByDestination((current) => {
         const next: Record<number, ActivitySearchResult[]> = {};
-
-        data.forEach((destination) => {
+        normalized.forEach((destination) => {
           next[destination.id] = current[destination.id] ?? [];
         });
-
         return next;
       });
     } catch {
@@ -227,6 +404,37 @@ export default function TripRoom() {
   useEffect(() => {
     void fetchDestinations();
   }, [fetchDestinations]);
+
+  useEffect(() => {
+    if (!hasFinalResult || !trip?.id || !token || !tokenReady) {
+      setFinalReport(null);
+      setReportError(null);
+      return;
+    }
+
+    const fetchFinalReportData = async () => {
+      try {
+        setReportLoading(true);
+        setReportError(null);
+        console.log("Fetching final report for trip:", trip.id);
+        const report = await apiService.getFinalReport(trip.id!);
+        console.log("Final report loaded:", report);
+        setFinalReport(report);
+      } catch (error) {
+        const err = error as Error & { status?: number };
+        console.error("Failed to load final report:", err);
+        if (err.status === 404) {
+          setReportError("Final report is not available yet.");
+        } else {
+          setReportError(err.message || "Failed to load final report.");
+        }
+      } finally {
+        setReportLoading(false);
+      }
+    };
+
+    void fetchFinalReportData();
+  }, [hasFinalResult, trip?.id, token, tokenReady, apiService]);
 
   useEffect(() => {
     if (!tokenReady || !token || !tripId || !destinationListEndpoint) return;
@@ -262,8 +470,12 @@ export default function TripRoom() {
             }
 
             connected = true;
-            await readStreamEvents(response.body, abortController.signal, () => {
-              refreshFromStream();
+            await readStreamEvents(response.body, abortController.signal, (streamEvent) => {
+              if (streamEvent.event === "trip-status-updated") {
+                void fetchTrip({ silent: true });
+              } else {
+                refreshFromStream();
+              }
             });
             break;
           } catch {
@@ -296,6 +508,11 @@ export default function TripRoom() {
   }, [destinationListEndpoint, fetchDestinations, fetchTrip, token, tokenReady, tripId]);
 
   const handleAddDestination = useCallback(async () => {
+    if (isReadOnlyMode) {
+      setFeedback({ type: "error", text: "Trip is in read-only mode." });
+      return;
+    }
+
     if (!destinationListEndpoint) {
       setFeedback({ type: "error", text: "Trip is not loaded yet." });
       return;
@@ -318,7 +535,51 @@ export default function TripRoom() {
       const err = error as Error;
       setFeedback({ type: "error", text: err.message || "Could not add destination." });
     }
-  }, [apiService, destinationListEndpoint, newDestinationName]);
+  }, [apiService, destinationListEndpoint, isReadOnlyMode, newDestinationName]);
+
+  const startEditDestination = useCallback((destinationId: number, currentName: string) => {
+    setEditingDestinationId(destinationId);
+    setEditingDestinationName(currentName ?? "");
+  }, []);
+
+  const cancelEditDestination = useCallback(() => {
+    setEditingDestinationId(null);
+    setEditingDestinationName("");
+  }, []);
+
+  const saveEditedDestination = useCallback(async (destinationId: number, rawName?: string) => {
+    if (!trip?.id) return;
+    const nextName = (rawName ?? editingDestinationInputRef.current?.value ?? editingDestinationName).trim();
+    if (!nextName) {
+      setFeedback({ type: "error", text: "Destination name cannot be empty." });
+      return;
+    }
+
+    try {
+      const updated = await apiService.put<unknown>(`/trips/${trip.id}/destinations/${destinationId}`, { destinationName: nextName });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const u = updated as any;
+      const normalized = {
+        id: u.id,
+        tripId: u.tripId,
+        destinationName: u.name ?? u.destinationName ?? "",
+        proposedByUserId: u.proposedByUserId,
+        activities: u.activities ?? [],
+      };
+      setDestinations((current) => current.map((d) => (d.id === destinationId ? normalized : d)));
+      setFeedback({ type: "success", text: "Destination updated." });
+      cancelEditDestination();
+    } catch (err) {
+      const e = err as Error & { status?: number };
+      if (e.status === 403) {
+        setFeedback({ type: "error", text: "You are not allowed to edit this destination." });
+      } else if (e.status === 409) {
+        setFeedback({ type: "error", text: "Destination already has activities and cannot be edited." });
+      } else {
+        setFeedback({ type: "error", text: e.message || "Could not update destination." });
+      }
+    }
+  }, [apiService, trip?.id, editingDestinationName, cancelEditDestination]);
 
   const handleSearchActivities = useCallback(async () => {
     if (!trip?.id || activityModalDestinationId === null) {
@@ -345,18 +606,19 @@ export default function TripRoom() {
       setActivityFeedback(null);
       const params = new URLSearchParams({ query: activityQuery.trim() });
 
-      if (activityLocation.trim()) {
-        params.set("location", activityLocation.trim());
+      const locationParam = activityLocationCoords.trim() || activityLocation.trim();
+      if (locationParam) {
+        params.set("location", locationParam);
       }
 
       if (activityRadius.trim()) {
-        const radiusNumber = Number(activityRadius);
-        if (!Number.isFinite(radiusNumber) || radiusNumber <= 0) {
+        const radiusKm = Number(activityRadius);
+        if (!Number.isFinite(radiusKm) || radiusKm <= 0) {
           setActivityFeedback({ type: "error", text: "Radius must be a positive number." });
           setActivityLoading(false);
           return;
         }
-        params.set("radius", String(Math.round(radiusNumber)));
+        params.set("radius", String(Math.round(radiusKm * 1000)));
       }
 
       const results = await apiService.get<ActivitySearchResult[]>(
@@ -379,6 +641,7 @@ export default function TripRoom() {
     }
   }, [
     activityLocation,
+    activityLocationCoords,
     activityModalDestinationId,
     activityQuery,
     activityRadius,
@@ -415,7 +678,8 @@ export default function TripRoom() {
     setActivityModalOpen(true);
     setActivityQuery("");
     setActivityLocation("");
-    setActivityRadius("");
+    setActivityLocationCoords("");
+    setActivityRadius("2");
     setActivityResults(null);
     setActivityFeedback(null);
   }, []);
@@ -425,7 +689,8 @@ export default function TripRoom() {
     setActivityModalDestinationId(null);
     setActivityQuery("");
     setActivityLocation("");
-    setActivityRadius("");
+    setActivityLocationCoords("");
+    setActivityRadius("2");
     setActivityResults(null);
     setActivityFeedback(null);
     setActivityLoading(false);
@@ -433,6 +698,11 @@ export default function TripRoom() {
 
   const handleAddActivityToDestination = useCallback(
     async (activity: ActivitySearchResult) => {
+      if (isReadOnlyMode) {
+        setActivityFeedback({ type: "error", text: "Trip is in read-only mode." });
+        return;
+      }
+
       if (!token || activityModalDestinationId === null) return;
       const endpoint = getActivitiesEndpoint(activityModalDestinationId);
       if (!endpoint) return;
@@ -461,8 +731,220 @@ export default function TripRoom() {
         setActivityFeedback({ type: "error", text: err.message || "Could not add activity." });
       }
     },
-    [activityModalDestinationId, apiService, getActivitiesEndpoint, token],
+    [activityModalDestinationId, apiService, getActivitiesEndpoint, isReadOnlyMode, token],
   );
+
+  const handleStartFinalEvaluation = useCallback(async () => {
+    if (!trip?.id || !canStartFinalEvaluation || !winnerDestination) return;
+
+    try {
+      const updatedTrip = await apiService.post<Trip>(`/trips/${trip.id}/final-evaluation`);
+      console.log("Final evaluation response:", updatedTrip);
+      console.log("Trip status:", updatedTrip.status, "finalized:", updatedTrip.finalized);
+      const finalizedTrip = await apiService.finalizeTrip(trip.id, winnerDestination.id);
+      setTrip(finalizedTrip as Trip);
+      setActivityModalOpen(false);
+      setActivityModalDestinationId(null);
+    } catch (error) {
+      const err = error as Error;
+      console.error("Final evaluation error:", err);
+      setFeedback({ type: "error", text: err.message || "Could not start final evaluation." });
+    }
+  }, [apiService, canStartFinalEvaluation, trip?.id, winnerDestination]);
+
+  // Confirmation dialog state for finalization
+  const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
+
+  const confirmFinalize = useCallback(async () => {
+    setConfirmFinalizeOpen(false);
+    await handleStartFinalEvaluation();
+  }, [handleStartFinalEvaluation]);
+
+  const handleDownloadReport = useCallback(() => {
+    if (!finalReport) return;
+
+    void (async () => {
+      const [{ jsPDF }, logoDataUrl] = await Promise.all([
+        import("jspdf"),
+        loadImageDataUrl("/logo.png"),
+      ]);
+
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 40;
+      const accent = [38, 132, 255] as const;
+      const accentDark = [12, 45, 92] as const;
+      const softBlue = [240, 247, 255] as const;
+      const softGold = [255, 247, 229] as const;
+
+      const addHeader = () => {
+        doc.setFillColor(...accent);
+        doc.rect(0, 0, pageWidth, 84, "F");
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin, 18, pageWidth - margin * 2, 48, 14, 14, "F");
+        doc.addImage(logoDataUrl, "PNG", margin + 14, 28, 110, 28);
+        doc.setTextColor(...accentDark);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.text("Final Trip Report", pageWidth - margin - 150, 47, { align: "right" });
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Generated ${new Date(finalReport.generatedAt).toLocaleString()}`, pageWidth - margin - 150, 62, { align: "right" });
+      };
+
+      const addFooter = (pageNumber: number) => {
+        doc.setDrawColor(220, 228, 240);
+        doc.line(margin, pageHeight - 34, pageWidth - margin, pageHeight - 34);
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(9);
+        doc.text(`TripSync • Page ${pageNumber}`, margin, pageHeight - 18);
+        doc.text(`Room Code: ${finalReport.roomCode || trip?.roomCode || "-"}`, pageWidth - margin, pageHeight - 18, { align: "right" });
+      };
+
+      addHeader();
+
+      let cursorY = 120;
+
+      const ensureSpace = (neededHeight: number) => {
+        if (cursorY + neededHeight > pageHeight - 52) {
+          addFooter(doc.getNumberOfPages());
+          doc.addPage();
+          addHeader();
+          cursorY = 120;
+        }
+      };
+
+      const addSectionTitle = (title: string, color: readonly [number, number, number]) => {
+        ensureSpace(34);
+        doc.setFillColor(...color);
+        doc.roundedRect(margin, cursorY - 12, pageWidth - margin * 2, 26, 8, 8, "F");
+        doc.setTextColor(15, 23, 42);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text(title, margin + 14, cursorY + 6);
+        cursorY += 24;
+      };
+
+      const addTextLines = (lines: string[], indent = 0, fontSize = 11, color: readonly [number, number, number] = [30, 41, 59]) => {
+        doc.setTextColor(...color);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(fontSize);
+
+        lines.forEach((line) => {
+          const splitLines = doc.splitTextToSize(line, pageWidth - margin * 2 - indent);
+          splitLines.forEach((splitLine: string) => {
+            ensureSpace(18);
+            doc.text(splitLine, margin + indent, cursorY);
+            cursorY += 15;
+          });
+        });
+      };
+
+      const addCard = (title: string, value: string, width: number, fillColor: readonly [number, number, number], valueColor: readonly [number, number, number]) => {
+        ensureSpace(70);
+        doc.setFillColor(...fillColor);
+        doc.roundedRect(margin, cursorY, width, 58, 12, 12, "F");
+        doc.setTextColor(71, 85, 105);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text(title, margin + 14, cursorY + 20);
+        doc.setTextColor(...valueColor);
+        doc.setFontSize(16);
+        doc.text(value, margin + 14, cursorY + 42);
+      };
+
+      addSectionTitle("Trip Overview", softBlue);
+      addTextLines([
+        `Trip: ${finalReport.tripName || "Trip Report"}`,
+        `Room Code: ${finalReport.roomCode || trip?.roomCode || "-"}`,
+      ], 16);
+
+      cursorY += 6;
+      addSectionTitle("Winning Destination", softGold);
+      if (finalReport.winningDestination) {
+        addTextLines([`Name: ${finalReport.winningDestination.name || "-"}`], 16);
+        cursorY += 4;
+        const cardWidth = (pageWidth - margin * 2 - 12) / 3;
+        addCard("Upvotes", String(finalReport.winningDestination.totalUpvotes), cardWidth, [255, 255, 255], [22, 101, 52]);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin + cardWidth + 6, cursorY, cardWidth, 58, 12, 12, "F");
+        doc.setTextColor(71, 85, 105);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text("Downvotes", margin + cardWidth + 20, cursorY + 20);
+        doc.setTextColor(185, 28, 28);
+        doc.setFontSize(16);
+        doc.text(String(finalReport.winningDestination.totalDownvotes), margin + cardWidth + 20, cursorY + 42);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin + (cardWidth + 6) * 2, cursorY, cardWidth, 58, 12, 12, "F");
+        doc.setTextColor(71, 85, 105);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text("Final Score", margin + (cardWidth + 6) * 2 + 14, cursorY + 20);
+        doc.setTextColor(...accent);
+        doc.setFontSize(16);
+        doc.text(String(finalReport.winningDestination.totalScore), margin + (cardWidth + 6) * 2 + 14, cursorY + 42);
+        cursorY += 76;
+
+        addSectionTitle("Activities", softBlue);
+        if (finalReport.winningDestination.activities.length === 0) {
+          addTextLines(["No activities available."]);
+        } else {
+          finalReport.winningDestination.activities.forEach((activity) => {
+            ensureSpace(96);
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(margin, cursorY, pageWidth - margin * 2, 82, 12, 12, "F");
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(margin, cursorY, pageWidth - margin * 2, 82, 12, 12, "S");
+            doc.setTextColor(...accentDark);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text(`#${activity.rank} ${activity.name || "Unnamed Activity"}`, margin + 14, cursorY + 20);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(71, 85, 105);
+            let activityTextY = cursorY + 36;
+            const lines: string[] = [];
+            if (activity.address) lines.push(`Address: ${activity.address}`);
+            if (activity.rating !== null) lines.push(`Rating: ${activity.rating}`);
+            lines.push(`Upvotes: ${activity.upvotes}   Downvotes: ${activity.downvotes}   Score: ${activity.score}`);
+            if (activity.comments.length > 0) {
+              lines.push(`Comments: ${activity.comments.join("; ")}`);
+            }
+            lines.forEach((line) => {
+              const splitLines = doc.splitTextToSize(line, pageWidth - margin * 2 - 28);
+              splitLines.forEach((splitLine: string) => {
+                doc.text(splitLine, margin + 14, activityTextY);
+                activityTextY += 12;
+              });
+            });
+            cursorY += 94;
+          });
+        }
+      } else {
+        addTextLines(["Winning destination data is not available."]);
+      }
+
+      const totalPages = doc.getNumberOfPages();
+      for (let page = 1; page <= totalPages; page += 1) {
+        doc.setPage(page);
+        addFooter(page);
+      }
+
+      doc.save(`trip-report-${trip?.roomCode || "report"}.pdf`);
+    })().catch((error) => {
+      console.error("Failed to generate PDF report:", error);
+      setFeedback({ type: "error", text: "Could not generate PDF report." });
+    });
+  }, [finalReport, trip?.roomCode]);
+
+  useEffect(() => {
+    if (isReadOnlyMode && activityModalOpen) {
+      closeActivityModal();
+    }
+  }, [activityModalOpen, closeActivityModal, isReadOnlyMode]);
 
   const handleVoteUpdate = useCallback((updatedActivity: ActivitySearchResult) => {
     if (!updatedActivity.id) return;
@@ -486,16 +968,124 @@ export default function TripRoom() {
     setFeedback({ type: "error", text: error });
   }, []);
 
+  const formatCommentTime = useCallback((createdAt: string) => {
+    const parsed = new Date(createdAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return "just now";
+    }
+
+    const diffMs = Date.now() - parsed.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    if (diffMinutes < 1) return "just now";
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return parsed.toLocaleDateString();
+  }, []);
+
+  const handleToggleComments = useCallback(
+    (_destinationId: number, activityId?: number | null) => {
+      if (!activityId) return;
+
+      setCommentFeedback(null);
+      if (selectedActivityForComment === activityId) {
+        setSelectedActivityForComment(null);
+        setCommentInput("");
+        return;
+      }
+
+      setSelectedActivityForComment(activityId);
+      setCommentInput("");
+    },
+    [selectedActivityForComment],
+  );
+
+  const handleSubmitComment = useCallback(
+    async (destinationId: number, activityId?: number | null) => {
+      if (!trip?.id || !activityId) return;
+
+      const content = commentInput.trim();
+      if (!content) {
+        setCommentFeedback({ type: "error", text: "Comment cannot be empty." });
+        return;
+      }
+
+      if (content.length > 280) {
+        setCommentFeedback({ type: "error", text: "Comment cannot exceed 280 characters." });
+        return;
+      }
+
+      try {
+        setCommentLoading(true);
+        setCommentFeedback(null);
+        const created = await apiService.createComment(trip.id, destinationId, activityId, content);
+        setCommentsByActivity((current) => ({
+          ...current,
+          [activityId]: [...(current[activityId] ?? []), created],
+        }));
+        setCommentInput("");
+        setCommentFeedback({ type: "success", text: "Comment added." });
+      } catch (error) {
+        const err = error as Error;
+        setCommentFeedback({ type: "error", text: err.message || "Failed to add comment." });
+      } finally {
+        setCommentLoading(false);
+      }
+    },
+    [apiService, commentInput, trip?.id],
+  );
+
+  const syncAllComments = useCallback(async () => {
+    if (!trip?.id) return;
+
+    try {
+      const comments = await apiService.fetchTripComments(trip.id);
+      const grouped = comments.reduce<Record<number, Comment[]>>((accumulator, comment) => {
+        const activityId = Number(comment.activityId);
+        if (!Number.isFinite(activityId)) {
+          return accumulator;
+        }
+
+        accumulator[activityId] = [...(accumulator[activityId] ?? []), comment];
+        return accumulator;
+      }, {});
+      setCommentsByActivity(grouped);
+    } catch {
+      // Keep existing comments if the batch refresh fails.
+    }
+  }, [apiService, trip?.id]);
+
+  useEffect(() => {
+    if (!trip?.id) return;
+    void syncAllComments();
+  }, [syncAllComments, trip?.id]);
+
+  useEffect(() => {
+    if (!trip?.id) return;
+    const intervalId = setInterval(() => {
+      void syncAllComments();
+    }, 10000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [syncAllComments, trip?.id]);
+
   const participantItems = participants.length > 0
     ? participants
     : username?.trim()
-      ? [{ userId: Number(currentUserId || 0), roomUsername: username.trim() }]
+      ? [{ userId: Number(currentUserId || 0), username: username.trim() }]
       : [];
 
   if (loading) {
     return (
-      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
         <main className="h-screen overflow-y-auto px-2 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div
@@ -510,8 +1100,8 @@ export default function TripRoom() {
 
   if (!trip) {
     return (
-      <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-        <Sidebar onLogout={handleLogout} />
+      <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+        <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
         <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
           <div className="flex min-h-[60vh] items-center justify-center">
             <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
@@ -524,8 +1114,8 @@ export default function TripRoom() {
   }
 
   return (
-    <div className="grid h-screen grid-cols-[270px_1fr] overflow-hidden bg-[#f7f7f7] text-[#111]">
-      <Sidebar onLogout={handleLogout} />
+    <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+      <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
       <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
         <div className="w-full">
 
@@ -601,11 +1191,11 @@ export default function TripRoom() {
                       {participantItems.map((participant) => {
                         const isCurrentUser = String(participant.userId) === String(currentUserId);
                         return (
-                          <div key={`${participant.userId}-${participant.roomUsername}`} className="flex items-center gap-2">
+                          <div key={`${participant.userId}-${participant.username}`} className="flex items-center gap-2">
                             <span className="inline-flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-xs font-semibold text-gray-700 ring-1 ring-gray-200">
-                              {(participant.roomUsername?.trim()?.[0] ?? "U").toUpperCase()}
+                              {(participant.username?.trim()?.[0] ?? "U").toUpperCase()}
                             </span>
-                            <span className="font-medium text-gray-900">{participant.roomUsername}</span>
+                            <span className="font-medium text-gray-900">{participant.username}</span>
                             {isCurrentUser && (
                               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">You</span>
                             )}
@@ -617,15 +1207,72 @@ export default function TripRoom() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setFeedback({ type: "success", text: "Final evaluation flow coming soon." })}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0]"
-              >
-                Start Final Evaluation
-              </button>
+              {canShowFinalEvaluationButton && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmFinalizeOpen(true)}
+                    disabled={!canStartFinalEvaluation}
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Final Evaluation
+                  </button>
+
+                  <Dialog open={confirmFinalizeOpen} onClose={() => setConfirmFinalizeOpen(false)} className="relative z-50">
+                    <DialogBackdrop className="fixed inset-0 bg-black/30" />
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                      <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                        <DialogTitle className="text-lg font-semibold text-gray-900">Confirm Final Evaluation</DialogTitle>
+                        <p className="mt-2 text-sm text-gray-600">Finalizing the trip will make it read-only and cannot be undone. Are you sure you want to proceed?</p>
+                        <div className="mt-6 flex justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setConfirmFinalizeOpen(false)}
+                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void confirmFinalize()}
+                            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                      </DialogPanel>
+                    </div>
+                  </Dialog>
+                </>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {destinationLoading && (
+                <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">Loading destinations...</span>
+              )}
+              {!destinationLoading && destinations.length === 0 && (
+                <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">No destinations yet.</span>
+              )}
+              {destinations.map((destination) => (
+                <div key={destination.id} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDestinationId(destination.id)}
+                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                      selectedDestinationId === destination.id
+                        ? "border-blue-300 bg-blue-50 text-blue-700"
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {destination.destinationName}
+                  </button>
+
+                  {/* selection button only - edit/delete moved into cards */}
+                </div>
+              ))}
             </div>
           </header>
+
 
           {feedback && (
             <p
@@ -639,32 +1286,194 @@ export default function TripRoom() {
             </p>
           )}
 
+          {isEvaluationMode && !isFinalized && winnerDestination && (
+            <section className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 p-6 shadow-sm ring-1 ring-amber-200">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Final Evaluation</h2>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Selected winner: <span className="font-semibold text-amber-800">{winnerDestination.destinationName}</span>
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {hasFinalResult && (
+            <section className="mb-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-sm ring-1 ring-blue-200">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-xl font-bold text-gray-900">Trip Finalized 🎉</h2>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Final destination:
+                    <span className="ml-2 inline-flex rounded-full bg-white px-3 py-1 font-semibold text-blue-700 ring-1 ring-blue-200">
+                      {winnerDestination?.destinationName ?? "—"}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setReportModalOpen(true)}
+                    disabled={reportLoading || !finalReport}
+                    className="inline-flex items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 ring-1 ring-blue-200"
+                  >
+                    {reportLoading ? "Loading..." : "View Report"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadReport}
+                    disabled={!finalReport}
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <svg
+                      className="mr-2 h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Download
+                  </button>
+                </div>
+              </div>
+              {reportError && (
+                <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {reportError}
+                </p>
+              )}
+            </section>
+          )}
+
           <section className="mt-6">
-            <div className="flex gap-7 overflow-x-auto pb-4">
+            <div className="flex gap-7 overflow-x-auto pb-14">
               {destinationLoading && (
-                <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                   <p className="text-sm text-gray-600">Loading destinations...</p>
                 </div>
               )}
 
-              {!destinationLoading && [...destinations]
-                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+              {!destinationLoading && sortedDestinations
                 .map((destination) => {
+                const isWinner = Boolean(
+                  isReadOnlyMode && winnerDestination && winnerDestination.id === destination.id,
+                );
                 const items = activitiesByDestination[destination.id] ?? [];
                 return (
                   <div
                     key={destination.id}
-                    className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
+                    className={`relative min-w-85 rounded-2xl bg-white p-6 transition duration-300 ${
+                      isWinner
+                        ? "border-2 border-blue-400 bg-blue-50/50 shadow-[0_0_0_1px_rgba(59,130,246,0.2),0_18px_45px_-14px_rgba(37,99,235,0.65)]"
+                        : "border border-gray-200 shadow-sm"
+                    }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="text-3xl font-bold text-gray-900">{destination.destinationName}</h2>
-                        <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                    {isWinner && (
+                      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+                        {[...Array(12)].map((_, index) => (
+                          <span
+                            key={`confetti-${destination.id}-${index}`}
+                            className="winner-confetti"
+                            style={{
+                              left: `${8 + index * 7}%`,
+                              animationDelay: `${(index % 6) * 120}ms`,
+                            }}
+                          />
+                        ))}
                       </div>
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
-                        Score {destination.score ?? 0}
-                      </span>
+                    )}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        {editingDestinationId === destination.id ? (
+                          <>
+                            <input
+                              type="text"
+                              value={editingDestinationName}
+                              ref={editingDestinationInputRef}
+                              onChange={(event) => setEditingDestinationName(event.target.value)}
+                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-3xl font-bold text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                              aria-label="Destination name"
+                              autoFocus
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void saveEditedDestination(destination.id, editingDestinationInputRef.current?.value)}
+                                className="rounded-md border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+                              >
+                                Save
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelEditDestination}
+                                className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <h2 className="truncate text-3xl font-bold text-gray-900" title={destination.destinationName ?? undefined}>{destination.destinationName}</h2>
+                            <p className="mt-1 text-xs text-gray-500">Live score from activity votes</p>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isWinner && (
+                          <span className="rounded-full bg-blue-200 px-3 py-1 text-sm font-semibold text-blue-900">
+                            Winner
+                          </span>
+                        )}
+                        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
+                          Score {destination.score ?? 0}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* Action buttons under the score */}
+                    {editingDestinationId !== destination.id && (
+                      <div className="mt-4 flex gap-2">
+                        {(() => {
+                          const canModify =
+                            currentUserId !== undefined &&
+                            Number(currentUserId) === Number(destination.proposedByUserId) &&
+                            (destination.activities?.length ?? 0) === 0 &&
+                            !isReadOnlyMode;
+                          return canModify;
+                        })() && (
+                          <>
+                          <button
+                            type="button"
+                            onClick={() => startEditDestination(destination.id, destination.destinationName ?? "")}
+                            className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            title="Edit destination"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDestinationToDelete(destination);
+                              setDeleteDestinationConfirmOpen(true);
+                            }}
+                            className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 hover:bg-red-100"
+                            title="Delete destination"
+                          >
+                            Delete
+                          </button>
+                          </>
+                        )}
+                      </div>
+                    )}
 
                     <div className="mt-5 space-y-4">
                       {items.length === 0 ? (
@@ -672,41 +1481,172 @@ export default function TripRoom() {
                       ) : (
                         [...items]
                           .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-                          .map((activity) => (
-                          <article
-                            key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
-                            className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4"
-                          >
-                            {activity.photoUrl ? (
-                              <img
-                                src={activity.photoUrl}
-                                alt={activity.name ?? "Event"}
-                                className="h-14 w-14 shrink-0 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
-                            )}
-                            <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold text-gray-900">
-                                {activity.name ?? "Unnamed event"}
-                              </h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
-                                {activity.rating !== null && <span>Rating: {activity.rating}</span>}
-                                {activity.address && <span className="truncate">{activity.address}</span>}
-                              </div>
-                              <div className="mt-3">
-                                <VoteControls activity={activity} onVoteUpdate={handleVoteUpdate} onError={handleVoteError} />
-                              </div>
-                            </div>
-                          </article>
-                        ))
+                          .map((activity) => {
+                            const isOwner =
+                              activity.createdBy !== null
+                              && activity.createdBy !== undefined
+                              && currentUserId
+                              && Number(currentUserId) === activity.createdBy;
+                            const activityId = activity.id ?? null;
+                            const activityComments = activityId ? (commentsByActivity[activityId] ?? []) : [];
+                            const isCommentsOpen = Boolean(activityId && selectedActivityForComment === activityId);
+                            const remainingChars = 280 - commentInput.length;
+
+                            return (
+                              <article
+                                key={activity.id ?? activity.placeId ?? `${activity.name}-${activity.address}`}
+                                className="relative rounded-xl border border-gray-200 bg-white p-4"
+                              >
+                                <div className="flex gap-4">
+                                  {isOwner && (
+                                    <button
+                                      type="button"
+                                      aria-label="Delete activity"
+                                      title="Delete activity"
+                                      className="absolute top-2 right-2 rounded-md p-1 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                                      onClick={() => openDeleteConfirm(activity, destination.id)}
+                                    >
+                                      <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                        <path d="M4 7h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        <path d="M9 4h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        <path d="M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                      </svg>
+                                    </button>
+                                  )}
+
+                                  {activity.photoUrl ? (
+                                    <img
+                                      src={activity.photoUrl}
+                                      alt={activity.name ?? "Event"}
+                                      className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                                    />
+                                  ) : (
+                                    <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200" />
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <h3 className="truncate text-sm font-semibold text-gray-900" title={activity.name ?? undefined}>
+                                      {activity.name ?? "Unnamed event"}
+                                    </h3>
+                                    <div className="mt-1 flex flex-col gap-y-0.5 text-xs text-gray-600">
+                                      {activity.rating !== null && <span>Rating: {activity.rating}</span>}
+                                      {activity.address && (
+                                        <span className="truncate" title={activity.address}>{activity.address}</span>
+                                      )}
+                                    </div>
+                                    <div className="mt-3">
+                                      <VoteControls
+                                        activity={activity}
+                                        onVoteUpdate={handleVoteUpdate}
+                                        onError={handleVoteError}
+                                        disabled={isReadOnlyMode}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-3 border-t border-gray-100 pt-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleComments(destination.id, activityId)}
+                                        disabled={!activityId}
+                                        className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                      >
+                                        {isCommentsOpen ? "Hide comments" : "Comments"}
+                                      </button>
+
+                                      {(activity.address || (activity.latitude && activity.longitude)) && (
+                                        <a
+                                          href={activity.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.address)}` : `https://www.google.com/maps/search/?api=1&query=${activity.latitude},${activity.longitude}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                        >
+                                          <MapPinIcon className="h-4 w-4 text-gray-600" aria-hidden="true" />
+                                          Open in Maps
+                                        </a>
+                                      )}
+                                    </div>
+
+                                    <span className="text-xs text-gray-500">{activityComments.length} comment{activityComments.length === 1 ? "" : "s"}</span>
+                                  </div>
+
+                                  {isCommentsOpen && activityId && (
+                                    <div className="mt-3 space-y-3">
+                                      {activityComments.length > 0 ? (
+                                        <div className="max-h-36 space-y-2 overflow-y-auto pr-1">
+                                          {activityComments.map((comment) => (
+                                            <div key={comment.id} className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+                                              <p className="text-xs text-gray-500">
+                                                <span className="font-semibold text-gray-700">{comment.username}</span>
+                                                {" "}
+                                                ·
+                                                {" "}
+                                                {formatCommentTime(comment.createdAt)}
+                                              </p>
+                                              <p className="mt-1 text-sm text-gray-800">{comment.content}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-gray-500">No comments yet.</p>
+                                      )}
+
+                                      <div className="space-y-2">
+                                        <textarea
+                                          value={commentInput}
+                                          onChange={(event) => {
+                                            setCommentInput(event.target.value);
+                                            if (commentFeedback?.type === "error") {
+                                              setCommentFeedback(null);
+                                            }
+                                          }}
+                                          maxLength={280}
+                                          rows={3}
+                                          placeholder="What are you thinking about this activity?"
+                                          className="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                                        />
+                                        <div className="flex items-center justify-between">
+                                          <span className={`text-xs ${remainingChars <= 30 ? "text-amber-600" : "text-gray-500"}`}>
+                                            {commentInput.length}/280
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => void handleSubmitComment(destination.id, activityId)}
+                                            disabled={commentLoading || commentInput.trim().length === 0 || commentInput.trim().length > 280 || isReadOnlyMode}
+                                            className="rounded-md bg-[#2684ff] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                                          >
+                                            {commentLoading ? "Posting..." : "Post comment"}
+                                          </button>
+                                        </div>
+                                        {commentFeedback && (
+                                          <p
+                                            className={`rounded-md border px-2.5 py-1.5 text-xs ${
+                                              commentFeedback.type === "error"
+                                                ? "border-red-200 bg-red-50 text-red-700"
+                                                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                            }`}
+                                          >
+                                            {commentFeedback.text}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </article>
+                            );
+                          })
                       )}
                     </div>
 
                     <button
                       type="button"
                       onClick={() => openActivityModal(destination.id)}
-                      className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0]"
+                      disabled={isReadOnlyMode}
+                      className="mt-5 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Add Event
                     </button>
@@ -714,7 +1654,7 @@ export default function TripRoom() {
                 );
               })}
 
-              <div className="min-w-85 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+              <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
                 <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
                 <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
                 <div className="mt-4">
@@ -723,12 +1663,13 @@ export default function TripRoom() {
                     value={newDestinationName}
                     onChange={(event) => setNewDestinationName(event.target.value)}
                     placeholder="e.g. Rome"
+                    disabled={isReadOnlyMode}
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                   />
                   <button
                     type="button"
                     onClick={handleAddDestination}
-                    disabled={destinationLoading}
+                    disabled={destinationLoading || isReadOnlyMode}
                     className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Add Destination
@@ -755,22 +1696,27 @@ export default function TripRoom() {
                   />
 
                   <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
-                    <input
-                      type="text"
+                    <LocationPicker
                       value={activityLocation}
-                      onChange={(event) => setActivityLocation(event.target.value)}
+                      onChange={(display, coords) => {
+                        setActivityLocation(display);
+                        setActivityLocationCoords(coords);
+                      }}
                       placeholder="Optional location (e.g. Zurich)"
                       className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     />
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={activityRadius}
-                      onChange={(event) => setActivityRadius(event.target.value)}
-                      placeholder="Radius (meters)"
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={activityRadius}
+                        onChange={(event) => setActivityRadius(event.target.value)}
+                        placeholder="2"
+                        className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">km</span>
+                    </div>
                     <button
                       type="button"
                       onClick={handleSearchActivities}
@@ -818,7 +1764,8 @@ export default function TripRoom() {
                             <button
                               type="button"
                               onClick={() => void handleAddActivityToDestination(activity)}
-                              className="rounded-lg bg-[#2684ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1f6fe0]"
+                              disabled={isReadOnlyMode}
+                              className="rounded-lg bg-[#2684ff] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                             >
                               Add
                             </button>
@@ -843,8 +1790,254 @@ export default function TripRoom() {
               </DialogPanel>
             </div>
           </Dialog>
-      </div>
+
+          <Dialog open={reportModalOpen} onClose={() => setReportModalOpen(false)} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-3xl rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 border-b border-gray-200 bg-white px-6 py-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <DialogTitle className="text-2xl font-bold text-gray-900">
+                        Final Trip Report
+                      </DialogTitle>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Generated: {finalReport?.generatedAt ? new Date(finalReport.generatedAt).toLocaleString() : "—"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setReportModalOpen(false)}
+                      className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      aria-label="Close"
+                    >
+                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {reportLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-900" />
+                    </div>
+                  ) : !finalReport || !finalReport.winningDestination ? (
+                    <div className="rounded-lg bg-yellow-50 p-4 text-sm text-yellow-700">
+                      Report data is not available yet. Please try again shortly.
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 p-4 ring-1 ring-blue-200">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {finalReport.tripName || "Trip Report"}
+                        </h3>
+                        <p className="mt-2 text-sm text-gray-600">
+                          Room Code: <span className="font-semibold text-gray-900">{finalReport.roomCode}</span>
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
+                        <h3 className="text-lg font-bold text-blue-900">
+                          🏆 Winning Destination
+                        </h3>
+                        <h4 className="mt-2 text-2xl font-bold text-blue-950">
+                          {finalReport.winningDestination.name || "—"}
+                        </h4>
+                        <div className="mt-3 grid grid-cols-3 gap-3">
+                          <div className="rounded-lg bg-white p-3 text-center ring-1 ring-blue-100">
+                            <p className="text-xs text-gray-500">Total Upvotes</p>
+                            <p className="mt-1 text-lg font-bold text-gray-900">
+                              {finalReport.winningDestination.totalUpvotes}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-white p-3 text-center ring-1 ring-blue-100">
+                            <p className="text-xs text-gray-500">Total Downvotes</p>
+                            <p className="mt-1 text-lg font-bold text-gray-900">
+                              {finalReport.winningDestination.totalDownvotes}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-white p-3 text-center ring-1 ring-blue-100">
+                            <p className="text-xs text-gray-500">Final Score</p>
+                            <p className="mt-1 text-lg font-bold text-blue-700">
+                              {finalReport.winningDestination.totalScore}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {finalReport.winningDestination.activities.length > 0 ? (
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">Activities</h3>
+                          <div className="mt-3 space-y-3">
+                            {finalReport.winningDestination.activities.map((activity) => (
+                              <div
+                                key={activity.id}
+                                className="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-md transition"
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                                        #{activity.rank}
+                                      </span>
+                                      <h4 className="truncate text-sm font-semibold text-gray-900">
+                                        {activity.name || "Unnamed Activity"}
+                                      </h4>
+                                    </div>
+                                    {activity.address && (
+                                      <p className="mt-1 truncate text-xs text-gray-600">{activity.address}</p>
+                                    )}
+                                    {activity.rating !== null && (
+                                      <p className="mt-1 text-xs text-gray-500">Rating: {activity.rating}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    <div className="rounded-lg bg-green-50 px-2 py-1 text-right ring-1 ring-green-200">
+                                      <p className="text-xs text-gray-500">Upvotes</p>
+                                      <p className="text-sm font-bold text-green-700">{activity.upvotes}</p>
+                                    </div>
+                                    <div className="rounded-lg bg-red-50 px-2 py-1 text-right ring-1 ring-red-200">
+                                      <p className="text-xs text-gray-500">Downvotes</p>
+                                      <p className="text-sm font-bold text-red-700">{activity.downvotes}</p>
+                                    </div>
+                                    <div className="rounded-lg bg-blue-50 px-2 py-1 text-right ring-1 ring-blue-200">
+                                      <p className="text-xs text-gray-500">Score</p>
+                                      <p className="text-sm font-bold text-blue-700">{activity.score}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-lg bg-gray-50 p-4 text-center text-sm text-gray-600">
+                          No activities in final report.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="sticky bottom-0 border-t border-gray-200 bg-gray-50 px-6 py-4 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={handleDownloadReport}
+                    disabled={!finalReport}
+                    className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download JSON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReportModalOpen(false)}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+          <Dialog open={deleteConfirmOpen} onClose={closeDeleteConfirm} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                <DialogTitle className="text-lg font-semibold text-gray-900">Delete activity</DialogTitle>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to delete this activity? This action cannot be undone.
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeDeleteConfirm}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmDeleteActivity}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+
+          <Dialog open={deleteDestinationConfirmOpen} onClose={() => { setDeleteDestinationConfirmOpen(false); setDestinationToDelete(null); }} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-black/30" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <DialogPanel className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
+                <DialogTitle className="text-lg font-semibold text-gray-900">Delete Destination</DialogTitle>
+                <p className="mt-2 text-sm text-gray-600">
+                  Are you sure you want to delete <span className="font-semibold">{destinationToDelete?.destinationName}</span>? This action cannot be undone.
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setDeleteDestinationConfirmOpen(false); setDestinationToDelete(null); }}
+                    className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteDestination()}
+                    disabled={destinationLoading}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {destinationLoading ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </DialogPanel>
+            </div>
+          </Dialog>
+        </div>                    
       </main>
+      <style jsx>{`
+        .winner-confetti {
+          position: absolute;
+          top: -10px;
+          width: 8px;
+          height: 14px;
+          border-radius: 999px;
+          opacity: 0;
+          animation: winner-confetti-fall 2.6s ease-in-out infinite;
+          background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+        }
+
+        .winner-confetti:nth-child(3n) {
+          background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 100%);
+          height: 10px;
+        }
+
+        .winner-confetti:nth-child(4n) {
+          background: linear-gradient(180deg, #bfdbfe 0%, #1d4ed8 100%);
+          width: 6px;
+        }
+
+        @keyframes winner-confetti-fall {
+          0% {
+            transform: translateY(-16px) rotate(0deg);
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(140px) rotate(260deg);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }

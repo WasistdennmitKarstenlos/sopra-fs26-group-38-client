@@ -9,6 +9,11 @@
   --color-bg-container: #16181d;
 }
 
+/* Google Maps autocomplete dropdown must sit above all modals */
+.pac-container {
+  z-index: 9999 !important;
+}
+
 @layer base {
   html,
   body {
