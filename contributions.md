@@ -67,10 +67,10 @@ TA meeting slot: April 6, 2026 (08:00-10:00) No TA meeting
 |             | Joel Marc Dickey | 2026-04-02 | No commit | Create Postman collection for all endpoints. | This allows us to directly test the server endpoints and see their outputs. |
 |             | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/8d0c513152aab6049adad3bfd34074781cd3d78f | BE: Enable invite generation to a trip room. | This is required, so that the host can generate invite codes for people to join the room. |
 |             | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/95316fcc729dc8d7c15274fe6a9ce576e3562ffa | BE: Allow a user to add a destination to a trip. | This is required, so that users can propose where they'd like to go for the respective trip. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
-|  | Lennart Robin Zirn |  |  |  |  |
-| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
-|  | Jean Leon Keim |  |  |  | |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-04-02 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/55/changes/06c214a6162d68fda999a283fe16eeda86815ac0) | Implementing tailwind and changing old design files from ant to tailwind | The implementation of tailwind makes it much easier to use layouts of the different pages |
+|              | Jean Leon Keim | 2026-04-12 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/63/changes/87f1e52cc205e26c0c12cc3d517fc31013b669aa) | remevoed mock data, dashboard/page.tx now imports data from the backend | The mock data was just there to see functionality ath the beginning |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/57 | Fixing Register and Login page | It handles Errors, makes the sites more beautiful and improves the flow |
+|               | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/132 | Tests for login/logout and improve some some small stuff | To make sure everything works as intended in the backend |
 
 ---
 
@@ -99,10 +99,7 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@JeanKeim1]** | Jean Leon Keim | 2026-04-02 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/55/changes/06c214a6162d68fda999a283fe16eeda86815ac0) | Implementing tailwind and changing old design files from ant to tailwind | The implementation of tailwind makes it much easier to use layouts of the different pages |
-|  | Jean Leon Keim | 2026-04-12 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/63/changes/87f1e52cc205e26c0c12cc3d517fc31013b669aa) | remevoed mock data, dashboard/page.tx now imports data from the backend | The mock data was just there to see functionality ath the beginning |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/57 | Fixing Register and Login page | It handles Errors, makes the sites more beautiful and improves the flow |
-|  | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/132 | Tests for login/logout and improve some some small stuff | To make sure everything works as intended in the backend |
+
 ---
 
 ## Contributions Week 4 - April 13, 2026 to April 20, 2026
@@ -145,8 +142,8 @@ TA meeting slot: April 27, 2026 (08:00-10:00) [No TA Meeting]
 |             | Joel Marc Dickey | 2026-04-08 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4e2f5e8b630e34018ae96e50cdc2b883dc445cca | Update design of Trip Room. | Done to match the design in Figma. |
 |             | Joel Marc Dickey | 2026-04-13 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/ab18064757902a6c4aff7302d155d4f11a6eaa3d | Update Header to display invite code. | Provide the room code in frontend so people can invite others to join a room. |
 |             | Joel Marc Dickey | 2026-04-13 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/72c6072e7de1eb57d7d6914558543e669b907d36 | Create destination column design in trip room. | Create view that displays the destinations and allows for adding activities to them. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
-|  | Lennart Robin Zirn |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-04-22 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/267/changes/db7b70678bbe98869a66700e71ebc0cf828dab13 | Backend Implementation for deleting activity| So the User can edit and delete Destination |
+|              | Lennart Robin Zirn | 2026-04-22 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/133/changes/12c54b1b18ab03b20a20ab4f95f96f66ead789c9 | Frontend Implementation for deleting activity| So the User can edit and delete Destination |
 | **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
 |  | Jean Leon Keim |  |  |  | |
 
@@ -166,8 +163,8 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/548e3cccb23a826830495134eb6c2e9ba7b7df24 | Calculate Score for Destinations based on activities | Done to align implementation with user stories. |
 |             | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/3b6b9db27a8dabf6a14311d8b14bbd3a56d59c3a | Refine Design to match Figma | Done to match the design in Figma. |
 |             | Joel Marc Dickey | 2026-04-19 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/6c273102a555d36c8c942e6c833bd1a303c1beb2 | Update stream on new activity and on new vote | Needed for live updating and collaboration. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
-|  | Lennart Robin Zirn |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/263 | Report can be generated after Final Evaluation backend | Because the user can works afterwards with the report |
+|             | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/130 | Report can be generated after Final Evaluation frontend | Because the user can works afterwards with the report |
 | **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
 |  | Jean Leon Keim |  |  |  | |
 
