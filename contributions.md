@@ -74,26 +74,7 @@ TA meeting slot: April 6, 2026 (08:00-10:00) No TA meeting
 
 ---
 
-## Contributions Week 3 - April 6, 2026 to April 13, 2026
-
-TA meeting slot: April 13, 2026 (08:00-10:00) [No contributions needed Easter]
-
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
-|  | Ajay Sathish Shenoy |  |  |  | |
-| **[@itsmeroya]** | Arjun Roy | |  |  |  |
-|  | Arjun Roy |  |  |  ||
-| **[@3xpr]** | Joel Marc Dickey |  | | | |
-|  | Joel Marc Dickey |  |  |  |  |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
-|  | Lennart Robin Zirn |  |  |  |  |
-| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
-|  | Jean Leon Keim |  |  |  | |
-
----
-
-## Contributions Week 4 - April 13, 2026 to April 20, 2026
+## Contributions Week 3 - April 13, 2026 to April 20, 2026
 
 TA meeting slot: April 20, 2026 (08:00-10:00)
 
@@ -117,7 +98,7 @@ TA meeting slot: April 20, 2026 (08:00-10:00)
 
 ---
 
-## Contributions Week 5 - April 20, 2026 to April 27, 2026
+## Contributions Week 4 - April 20, 2026 to April 27, 2026
 
 TA meeting slot: April 27, 2026 (08:00-10:00) [No TA Meeting]
 
@@ -142,7 +123,7 @@ TA meeting slot: April 27, 2026 (08:00-10:00) [No TA Meeting]
 
 ---
 
-## Contributions Week 6 - April 27, 2026 to May 4, 2026
+## Contributions Week 5 - April 27, 2026 to May 4, 2026
 
 TA meeting slot: May 4, 2026 (08:00-10:00) 
 
@@ -164,7 +145,7 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 ---
 
-## Contributions Week 7 - May 4, 2026 to May 11, 2026
+## Contributions Week 6 - May 4, 2026 to May 11, 2026
 
 TA meeting slot: May 11, 2026 (08:00-10:00)
 
@@ -183,7 +164,7 @@ TA meeting slot: May 11, 2026 (08:00-10:00)
 
 ---
 
-## Contributions Week 8 - May 11, 2026 to May 18, 2026
+## Contributions Week 7 - May 11, 2026 to May 18, 2026
 
 TA meeting slot: May 18, 2026 (08:00-10:00)
 
@@ -199,3 +180,23 @@ TA meeting slot: May 18, 2026 (08:00-10:00)
 |  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
+
+---
+
+## Contributions Week 8 - May 18, 2026 to May 22, 2026
+
+TA meeting slot: None
+
+| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
+| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
+|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@itsmeroya]** | Arjun Roy | |  |  |  |
+|  | Arjun Roy |  |  |  ||
+| **[@3xpr]** | Joel Marc Dickey |  | | | |
+|  | Joel Marc Dickey |  |  |  |  |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
+|  | Lennart Robin Zirn |  |  |  |  |
+| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
+|  | Jean Leon Keim |  |  |  | |
