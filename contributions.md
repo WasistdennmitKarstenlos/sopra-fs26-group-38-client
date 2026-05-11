@@ -93,15 +93,6 @@ TA meeting slot: April 13, 2026 (08:00-10:00) [No contributions needed Easter]
 
 ---
 
-## [Adjust and Delete] Contributions Week 4 - March 30, 2026 to April 13, 2026
-
-TA meeting slot: April 13, 2026 (08:00-10:00)
-
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-
----
-
 ## Contributions Week 4 - April 13, 2026 to April 20, 2026
 
 TA meeting slot: April 20, 2026 (08:00-10:00)
@@ -144,8 +135,9 @@ TA meeting slot: April 27, 2026 (08:00-10:00) [No TA Meeting]
 |             | Joel Marc Dickey | 2026-04-13 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/72c6072e7de1eb57d7d6914558543e669b907d36 | Create destination column design in trip room. | Create view that displays the destinations and allows for adding activities to them. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-04-22 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/267/changes/db7b70678bbe98869a66700e71ebc0cf828dab13 | Backend Implementation for deleting activity| So the User can edit and delete Destination |
 |              | Lennart Robin Zirn | 2026-04-22 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/133/changes/12c54b1b18ab03b20a20ab4f95f96f66ead789c9 | Frontend Implementation for deleting activity| So the User can edit and delete Destination |
-| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
-|  | Jean Leon Keim |  |  |  | |
+| **[@JeanKeim1]** | Jean Leon Keim | [2026-04-24] | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/735efc7 | Split rontendview into two parts, shared and my trips. | This makes the menu more visible for the user. |
+|  | Jean Leon Keim | [2026-04-21] | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/bfe6b2f | Create different memberships for the trips | This is important because The host has different abilities than the joined users |
+
 
 
 ---
@@ -165,22 +157,10 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 |             | Joel Marc Dickey | 2026-04-19 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/6c273102a555d36c8c942e6c833bd1a303c1beb2 | Update stream on new activity and on new vote | Needed for live updating and collaboration. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/263 | Report can be generated after Final Evaluation backend | Because the user can works afterwards with the report |
 |             | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/130 | Report can be generated after Final Evaluation frontend | Because the user can works afterwards with the report |
-| **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |
-|  | Jean Leon Keim |  |  |  | |
-
-
----
-
-## [Adjust and Delete] Contributions Week 4 - April 20, 2026 to May 4, 2026
-
-TA meeting slot: May 4, 2026 (08:00-10:00)
-
-| **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
-| -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/263 | Report can be generated after Final Evaluation backend | Because the user can works afterwards with the report |
-|  | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/130 | Report can be generated after Final Evaluation frontend | Because the user can works afterwards with the report |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-05-01 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/128/changes/37025e6] | implementing activity deletion of activities in the frontend. | Users now can delete activities wth zero upvotes. This makes the dashboard better viewable |
 |  | Jean Leon Keim | 2026-05-01 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/261/changes/2fb4e1b] | implementing activity deletion of activities in the backend. | Users now can delete activities wth zero upvotes. This makes the dashboard better viewable |
+
+
 
 ---
 
