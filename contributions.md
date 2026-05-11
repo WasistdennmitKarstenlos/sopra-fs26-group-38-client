@@ -59,8 +59,8 @@ TA meeting slot: April 6, 2026 (08:00-10:00) No TA meeting
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
-|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-04-03 | [b85dc5b](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/b85dc5b7d9ead33f4dd4ae5db5b49430eecffceb) | Task 1: US-10 backend activity search and persistence API | Implements destination-scoped activity search and selected activity persistence endpoints for trip rooms, enabling core US-10 functionality |
+|  | Ajay Sathish Shenoy | 2026-04-03 | [c20fd19](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/c20fd19051100223d13333ba17a703a75b805979) | Task 2: US-10 destination CRUD and activity edit API extensions | Completes backend API surface for destination and activity management used by the US-10 flow in the trip room |
 | **[@itsmeroya]** | Arjun Roy | 2026-04-03 | [b169085a443cddb91a0453345dd8e0bef71a2a6a](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/b169085a443cddb91a0453345dd8e0bef71a2a6a)  | User Registration - Frontend  | Updated Register page and css page to render similar to login |
 |  | Arjun Roy | 2026-04-03 |[dab269d43020cbedf176641cdf69a449fea770dd](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/67/changes/dab269d43020cbedf176641cdf69a449fea770dd)  | Trip finalization by Host - Frontend | Completes the  trip planning workflow to finalize all decisions/choices pertaining to the trip and renders as read-only|
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-02 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/f00cca2ff316bb791c784cd839d5dd4256370dce | BE: Integration of US-01 and US-02 | There were some unresolved conflicts and code that hat to be streamlined. |
@@ -99,9 +99,6 @@ TA meeting slot: April 13, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-04-03 | [b85dc5b](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/b85dc5b7d9ead33f4dd4ae5db5b49430eecffceb) | Task 1: US-10 backend activity search and persistence API | Implements destination-scoped activity search and selected activity persistence endpoints for trip rooms, enabling core US-10 functionality |
-|  | Ajay Sathish Shenoy | 2026-04-03 | [c20fd19](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/c20fd19051100223d13333ba17a703a75b805979) | Task 2: US-10 destination CRUD and activity edit API extensions | Completes backend API surface for destination and activity management used by the US-10 flow in the trip room |
-
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-04-02 | [\[Link to Commit 1\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/55/changes/06c214a6162d68fda999a283fe16eeda86815ac0) | Implementing tailwind and changing old design files from ant to tailwind | The implementation of tailwind makes it much easier to use layouts of the different pages |
 |  | Jean Leon Keim | 2026-04-12 | [\[Link to Commit 2\]](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/63/changes/87f1e52cc205e26c0c12cc3d517fc31013b669aa) | remevoed mock data, dashboard/page.tx now imports data from the backend | The mock data was just there to see functionality ath the beginning |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-03-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/57 | Fixing Register and Login page | It handles Errors, makes the sites more beautiful and improves the flow |
@@ -138,8 +135,8 @@ TA meeting slot: April 27, 2026 (08:00-10:00) [No TA Meeting]
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
-|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-04-22 | [03d61d3](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/03d61d3) | TA feedback support: env-based API integration wiring in the client | Keeps the frontend aligned with environment-specific API endpoints for the deployed app |
+|  | Ajay Sathish Shenoy | 2026-04-22 | [975f36f](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/975f36f) | TA feedback support: secure env handling and CI updates in the server | Improves backend deployment safety and CI reliability for the shared application |
 | **[@itsmeroya]** | Arjun Roy | [2026-04-20] | [2b443bf957b85f339c74e2f86e6a455f56937973](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/158/changes/2b443bf957b85f339c74e2f86e6a455f56937973) | Task 11: Enabling user to enter comments for an activity | Setup for entering and persisting comment |
 |  | Arjun Roy | [2026-04-20] | [aa05ed62983236b249bc8058aa30b53169aa3684](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/158/changes/aa05ed62983236b249bc8058aa30b53169aa3684) | Task 11: Enabling user to enter comments for an activity | Setup for service logic and backend tests |
 |  | Arjun Roy | [2026-04-20] | [7fbbceb33c3d23ad8b596cc0f9f9d2caea07346a](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/7fbbceb33c3d23ad8b596cc0f9f9d2caea07346a)| Task 11: Enabling user to enter comments for an activity - Frontend | Setup of comment and added Service method to call the backend endpoint |
@@ -162,8 +159,8 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | |  |  |  |
-|  | Ajay Sathish Shenoy |  |  |  | |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-05-03 | [4d266b6](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4d266b6) | US-08: Backend edit destination endpoint with validation, permission checks, and conflict handling | Implements creator-only destination editing with validation and conflict protection |
+|  | Ajay Sathish Shenoy | 2026-05-03 | [3c896ac](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/3c896ac) | US-08: Frontend inline edit destination UI with real-time state management and error handling | Provides the matching client-side destination edit experience with live feedback |
 | **[@itsmeroya]** | Arjun Roy | 2026-05-03 | [b5fae49006086dfa8031552ee1e9fa20a7330e51](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/264/changes/b5fae49006086dfa8031552ee1e9fa20a7330e51) | US-11: Backend implementation of comment functionality for activities along with tests | Adds all the functionality for multiple users to comment fixing previous implementation |
 |  | Arjun Roy | 2026-05-03 | [208b16321d1ccf70c1f9324374bd84cf9aad74c7](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/131/changes/208b16321d1ccf70c1f9324374bd84cf9aad74c7) | US-11: Frontend implementation of comment functionality for activities and its UI along with manual tests | Allows multiple users to post comments with appropriate checks fixing previous implementation |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-19 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/548e3cccb23a826830495134eb6c2e9ba7b7df24 | Calculate Score for Destinations based on activities | Done to align implementation with user stories. |
@@ -183,8 +180,6 @@ TA meeting slot: May 4, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-04-28 | [4d266b6](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/4d266b6) | US-08: Backend edit destination endpoint with validation, permission checks, and conflict handling | Implements core backend functionality for destination updates including creator-only permission enforcement, activity conflict detection, and name uniqueness validation |
-|  | Ajay Sathish Shenoy | 2026-04-28 | [3c896ac](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/3c896ac) | US-08: Frontend inline edit destination UI with real-time state management and error handling | Implements destination edit form with permission checks, activity warnings, success/error feedback, and seamless state synchronization |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/263 | Report can be generated after Final Evaluation backend | Because the user can works afterwards with the report |
 |  | Lennart Robin Zirn | 2026-05-03 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/130 | Report can be generated after Final Evaluation frontend | Because the user can works afterwards with the report |
 | **[@JeanKeim1]** | Jean Leon Keim | 2026-05-01 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/128/changes/37025e6] | implementing activity deletion of activities in the frontend. | Users now can delete activities wth zero upvotes. This makes the dashboard better viewable |
