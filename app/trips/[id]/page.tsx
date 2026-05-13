@@ -40,11 +40,7 @@ async function loadImageDataUrl(imagePath: string): Promise<string> {
   });
 }
 
-const realtimeEndpoints = (tripId: string) => [
-  `/trips/${tripId}/stream`,
-  `/trips/${tripId}/destinations/stream`,
-  `/trips/${tripId}/activities/stream`,
-];
+
 
 async function readStreamEvents(
   body: ReadableStream<Uint8Array>,
@@ -455,20 +451,17 @@ export default function TripRoom() {
       while (!abortController.signal.aborted) {
         let connected = false;
 
-        for (const endpoint of realtimeEndpoints(tripId)) {
-          try {
-            const response = await fetch(`${getApiDomain()}${endpoint}`, {
-              method: "GET",
-              headers,
-              signal: abortController.signal,
-              cache: "no-store",
-            });
+        try {
+          const endpoint = `/trips/${tripId}/destinations/stream`;
+          const response = await fetch(`${getApiDomain()}${endpoint}`, {
+            method: "GET",
+            headers,
+            signal: abortController.signal,
+            cache: "no-store",
+          });
 
-            const contentType = response.headers.get("Content-Type") ?? "";
-            if (!response.ok || !response.body || !contentType.includes("text/event-stream")) {
-              continue;
-            }
-
+          const contentType = response.headers.get("Content-Type") ?? "";
+          if (response.ok && response.body && contentType.includes("text/event-stream")) {
             connected = true;
             await readStreamEvents(response.body, abortController.signal, (streamEvent) => {
               if (streamEvent.event === "trip-status-updated") {
@@ -477,11 +470,10 @@ export default function TripRoom() {
                 refreshFromStream();
               }
             });
-            break;
-          } catch {
-            if (abortController.signal.aborted) {
-              return;
-            }
+          }
+        } catch {
+          if (abortController.signal.aborted) {
+            return;
           }
         }
 
