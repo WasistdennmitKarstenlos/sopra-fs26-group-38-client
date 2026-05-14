@@ -8,7 +8,7 @@ import { isProduction } from "@/utils/environment";
 export function getApiDomain(): string {
   const prodUrl =
     process.env.NEXT_PUBLIC_PROD_API_URL?.trim() ||
-    "https://sopra-fs26-group-38-server.oa.r.appspot.com";
+    "https://sopra-fs26-group-38-server-975751438892.europe-west6.run.app";
   const devUrl =
     process.env.NEXT_PUBLIC_DEV_API_URL?.trim() || "http://localhost:8080";
   return isProduction() ? prodUrl : devUrl;
