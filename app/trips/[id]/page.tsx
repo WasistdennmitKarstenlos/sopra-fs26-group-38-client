@@ -253,10 +253,10 @@ export default function TripRoom() {
   }, [sortedDestinations, trip]);
 
   const destinationExists = sortedDestinations.length > 0;
-  const canStartFinalEvaluation = Boolean(
+  const canStartFinalizeTrip = Boolean(
     trip && isHost && destinationExists && !isEvaluationMode && !isFinalized,
   );
-  const canShowFinalEvaluationButton = Boolean(trip?.canEnterFinalEvaluation || canStartFinalEvaluation);
+  const canShowFinalizeTripButton = Boolean(trip?.canFinalizeTrip || canStartFinalizeTrip);
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -726,12 +726,12 @@ export default function TripRoom() {
     [activityModalDestinationId, apiService, getActivitiesEndpoint, isReadOnlyMode, token],
   );
 
-  const handleStartFinalEvaluation = useCallback(async () => {
-    if (!trip?.id || !canStartFinalEvaluation || !winnerDestination) return;
+  const handleFinalizeTrip = useCallback(async () => {
+    if (!trip?.id || !canStartFinalizeTrip || !winnerDestination) return;
 
     try {
-      const updatedTrip = await apiService.post<Trip>(`/trips/${trip.id}/final-evaluation`);
-      console.log("Final evaluation response:", updatedTrip);
+      const updatedTrip = await apiService.post<Trip>(`/trips/${trip.id}/finalize-trip`);
+      console.log("Finalize trip response:", updatedTrip);
       console.log("Trip status:", updatedTrip.status, "finalized:", updatedTrip.finalized);
       const finalizedTrip = await apiService.finalizeTrip(trip.id, winnerDestination.id);
       setTrip(finalizedTrip as Trip);
@@ -739,18 +739,18 @@ export default function TripRoom() {
       setActivityModalDestinationId(null);
     } catch (error) {
       const err = error as Error;
-      console.error("Final evaluation error:", err);
-      setFeedback({ type: "error", text: err.message || "Could not start final evaluation." });
+      console.error("Finalize trip error:", err);
+      setFeedback({ type: "error", text: err.message || "Could not finalize trip." });
     }
-  }, [apiService, canStartFinalEvaluation, trip?.id, winnerDestination]);
+  }, [apiService, canStartFinalizeTrip, trip?.id, winnerDestination]);
 
   // Confirmation dialog state for finalization
   const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
 
   const confirmFinalize = useCallback(async () => {
     setConfirmFinalizeOpen(false);
-    await handleStartFinalEvaluation();
-  }, [handleStartFinalEvaluation]);
+    await handleFinalizeTrip();
+  }, [handleFinalizeTrip]);
 
   const handleDownloadReport = useCallback(() => {
     if (!finalReport) return;
@@ -1199,22 +1199,22 @@ export default function TripRoom() {
                 </div>
               </div>
 
-              {canShowFinalEvaluationButton && (
+              {canShowFinalizeTripButton && (
                 <>
                   <button
                     type="button"
                     onClick={() => setConfirmFinalizeOpen(true)}
-                    disabled={!canStartFinalEvaluation}
+                    disabled={!canStartFinalizeTrip}
                     className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Final Evaluation
+                    Finalize Trip
                   </button>
 
                   <Dialog open={confirmFinalizeOpen} onClose={() => setConfirmFinalizeOpen(false)} className="relative z-50">
                     <DialogBackdrop className="fixed inset-0 bg-black/30" />
                     <div className="fixed inset-0 flex items-center justify-center p-4">
                       <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
-                        <DialogTitle className="text-lg font-semibold text-gray-900">Confirm Final Evaluation</DialogTitle>
+                        <DialogTitle className="text-lg font-semibold text-gray-900">Confirm Finalize Trip</DialogTitle>
                         <p className="mt-2 text-sm text-gray-600">Finalizing the trip will make it read-only and cannot be undone. Are you sure you want to proceed?</p>
                         <div className="mt-6 flex justify-end gap-3">
                           <button
@@ -1282,7 +1282,7 @@ export default function TripRoom() {
             <section className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 p-6 shadow-sm ring-1 ring-amber-200">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Final Evaluation</h2>
+                  <h2 className="text-xl font-bold text-gray-900">Finalize Trip</h2>
                   <p className="mt-1 text-sm text-gray-600">
                     Selected winner: <span className="font-semibold text-amber-800">{winnerDestination.destinationName}</span>
                   </p>
