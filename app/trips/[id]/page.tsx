@@ -671,7 +671,7 @@ export default function TripRoom() {
     setActivityQuery("");
     setActivityLocation("");
     setActivityLocationCoords("");
-    setActivityRadius("2");
+    setActivityRadius("10");
     setActivityResults(null);
     setActivityFeedback(null);
   }, []);
@@ -682,7 +682,7 @@ export default function TripRoom() {
     setActivityQuery("");
     setActivityLocation("");
     setActivityLocationCoords("");
-    setActivityRadius("2");
+    setActivityRadius("10");
     setActivityResults(null);
     setActivityFeedback(null);
     setActivityLoading(false);
