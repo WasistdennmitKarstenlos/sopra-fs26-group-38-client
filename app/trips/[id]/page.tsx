@@ -1149,34 +1149,8 @@ export default function TripRoom() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-700">
                   <div className="inline-flex items-center gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-gray-500" aria-hidden="true">
-                      <path
-                        d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M6 11c1.66 0 3-1.34 3-3S7.66 5 6 5 3 6.34 3 8s1.34 3 3 3Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M6 13c-2.21 0-4 1.79-4 4v2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M16 13c-2.21 0-4 1.79-4 4v2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M10 11c1.66 0 3-1.34 3-3S11.66 5 10 5 7 6.34 7 8s1.34 3 3 3Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 flex-shrink-0 text-gray-500" aria-hidden="true">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                     <span className="text-gray-500">Participants</span>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1238,7 +1212,13 @@ export default function TripRoom() {
                 </>
               )}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 flex-shrink-0 text-gray-500" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-13c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
+                </svg>
+                <span className="text-gray-500">Destinations</span>
+              </div>
               {destinationLoading && (
                 <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">Loading destinations...</span>
               )}
@@ -1246,21 +1226,9 @@ export default function TripRoom() {
                 <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">No destinations yet.</span>
               )}
               {destinations.map((destination) => (
-                <div key={destination.id} className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDestinationId(destination.id)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                      selectedDestinationId === destination.id
-                        ? "border-blue-300 bg-blue-50 text-blue-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {destination.destinationName}
-                  </button>
-
-                  {/* selection button only - edit/delete moved into cards */}
-                </div>
+                <span key={destination.id} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-700">
+                  {destination.destinationName}
+                </span>
               ))}
             </div>
           </header>
@@ -1923,7 +1891,7 @@ export default function TripRoom() {
                     <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Download JSON
+                    Download
                   </button>
                   <button
                     type="button"
