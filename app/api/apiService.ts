@@ -248,15 +248,6 @@ export class ApiService {
   }
 
   /**
-   * Update username for the current user.
-   * @param newUsername - The new username.
-   * @returns Updated user data.
-   */
-  public async updateUsername(newUsername: string): Promise<{ id: number; username: string }> {
-    return this.put(`/users/me/username`, { newUsername });
-  }
-
-  /**
    * Update password for the current user.
    * @param currentPassword - The current password for verification.
    * @param newPassword - The new password.

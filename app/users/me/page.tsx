@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ApiService } from "@/app/api/apiService";
+import { useRouter } from "next/navigation";
+import { ApiService } from "@/api/apiService";
 
 interface UserProfile {
   id: number;
@@ -9,15 +10,11 @@ interface UserProfile {
 }
 
 const AccountSettings: React.FC = () => {
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  // Username form state
-  const [newUsername, setNewUsername] = useState("");
-  const [usernameSubmitting, setUsernameSubmitting] = useState(false);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -26,12 +23,26 @@ const AccountSettings: React.FC = () => {
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  const handleClose = () => {
+    router.replace("/dashboard");
+  };
+
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
-        const storedUserId = localStorage.getItem("userId");
-        const storedToken = localStorage.getItem("token");
-        const storedUsername = localStorage.getItem("username");
+        const readLocal = (k: string) => {
+          const raw = localStorage.getItem(k);
+          if (!raw) return null;
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return raw;
+          }
+        };
+
+        const storedUserId = readLocal("userId");
+        const storedToken = readLocal("token");
+        const storedUsername = readLocal("username");
 
         if (!storedUserId || !storedToken || !storedUsername) {
           setError("User not logged in. Please log in first.");
@@ -63,23 +74,6 @@ const AccountSettings: React.FC = () => {
     loadUserProfile();
   }, []);
 
-  const validateUsername = (username: string): boolean => {
-    if (!username.trim()) {
-      setUsernameError("Username cannot be empty.");
-      return false;
-    }
-    if (username.length < 3) {
-      setUsernameError("Username must be at least 3 characters.");
-      return false;
-    }
-    if (username.length > 50) {
-      setUsernameError("Username must be at most 50 characters.");
-      return false;
-    }
-    setUsernameError(null);
-    return true;
-  };
-
   const validatePassword = (): boolean => {
     if (!currentPassword) {
       setPasswordError("Current password is required.");
@@ -101,41 +95,6 @@ const AccountSettings: React.FC = () => {
     return true;
   };
 
-  const handleUsernameSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccessMessage(null);
-
-    if (!validateUsername(newUsername)) {
-      return;
-    }
-
-    setUsernameSubmitting(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setUsernameError("No authentication token found.");
-        return;
-      }
-
-      const apiService = new ApiService(token);
-      const result = await apiService.updateUsername(newUsername);
-
-      // Update localStorage with new username
-      localStorage.setItem("username", result.username);
-      setUser((prev) => (prev ? { ...prev, username: result.username } : null));
-      setNewUsername("");
-      setSuccessMessage("Username updated successfully!");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setUsernameError(err.message || "Failed to update username.");
-      } else {
-        setUsernameError("Failed to update username.");
-      }
-    } finally {
-      setUsernameSubmitting(false);
-    }
-  };
-
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccessMessage(null);
@@ -146,7 +105,17 @@ const AccountSettings: React.FC = () => {
 
     setPasswordSubmitting(true);
     try {
-      const token = localStorage.getItem("token");
+      const readLocal = (k: string) => {
+        const raw = localStorage.getItem(k);
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return raw;
+        }
+      };
+
+      const token = readLocal("token");
       if (!token) {
         setPasswordError("No authentication token found.");
         return;
@@ -157,7 +126,7 @@ const AccountSettings: React.FC = () => {
 
       // If new token is provided, update it in localStorage
       if (result.token) {
-        localStorage.setItem("token", result.token);
+        localStorage.setItem("token", JSON.stringify(result.token));
       }
 
       setCurrentPassword("");
@@ -218,35 +187,6 @@ const AccountSettings: React.FC = () => {
         )}
 
         <div className="space-y-8">
-          {/* Change Username Section */}
-          <div className="border-t pt-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Username</h2>
-            <form onSubmit={handleUsernameSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="newUsername" className="block text-sm font-medium text-gray-700 mb-1">
-                  New Username
-                </label>
-                <input
-                  id="newUsername"
-                  type="text"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  placeholder="Enter new username"
-                  disabled={usernameSubmitting}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent disabled:bg-gray-100"
-                />
-                {usernameError && <p className="mt-1 text-sm text-red-600">{usernameError}</p>}
-              </div>
-              <button
-                type="submit"
-                disabled={usernameSubmitting || !newUsername}
-                className="w-full px-4 py-2 bg-[#1E88E5] text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-              >
-                {usernameSubmitting ? "Updating..." : "Update Username"}
-              </button>
-            </form>
-          </div>
-
           {/* Change Password Section */}
           <div className="border-t pt-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
@@ -300,6 +240,17 @@ const AccountSettings: React.FC = () => {
                 className="w-full px-4 py-2 bg-[#1E88E5] text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
               >
                 {passwordSubmitting ? "Updating..." : "Update Password"}
+              </button>
+              <button
+                type="button"
+                onClick={handleClose}
+                className={
+                  successMessage
+                    ? "w-full px-4 py-2 bg-[#1E88E5] text-white font-semibold rounded-md hover:bg-blue-700 transition"
+                    : "w-full px-4 py-2 border border-gray-300 text-gray-700 font-semibold rounded-md hover:bg-gray-50 transition"
+                }
+              >
+                Close
               </button>
             </form>
           </div>
