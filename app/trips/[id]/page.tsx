@@ -666,15 +666,16 @@ export default function TripRoom() {
   }, [destinations, fetchActivitiesForDestination, token]);
 
   const openActivityModal = useCallback((destinationId: number) => {
+    const destination = destinations.find(d => d.id === destinationId);
     setActivityModalDestinationId(destinationId);
     setActivityModalOpen(true);
     setActivityQuery("");
-    setActivityLocation("");
+    setActivityLocation(destination?.destinationName ?? "");
     setActivityLocationCoords("");
-    setActivityRadius("2");
+    setActivityRadius("5");
     setActivityResults(null);
     setActivityFeedback(null);
-  }, []);
+  }, [destinations]);
 
   const closeActivityModal = useCallback(() => {
     setActivityModalOpen(false);
@@ -1675,7 +1676,7 @@ export default function TripRoom() {
                         step="0.1"
                         value={activityRadius}
                         onChange={(event) => setActivityRadius(event.target.value)}
-                        placeholder="2"
+                        placeholder="5"
                         className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                       />
                       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">km</span>
