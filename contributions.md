@@ -178,8 +178,9 @@ TA meeting slot: May 18, 2026 (08:00-10:00)
 |             | Joel Marc Dickey | 2026-04-28 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/7af6a8551b6241f6da7bb4e55d6c1d99829a7c9e, https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9c1e2a443eb495609960d508b36607e36da7acf9 | Realtime Updates on Google Cloud | App Engine requires special configuration to run SSE. We need SSE to allow for realtime updates in the trip room. |
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-17 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/145/changes/3917b8b5d6927046b7b230829b8b534ff54bca4b | Added manual tests for the frontend | So that there is as less bugs as possible |
 |             | Lennart Robin Zirn | 2026-05-17 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/145/changes/f59144fd58ec504f4b4e119ed41e44eaeca78223 | Made the error feedback red instead of green (TA Feedback) | So that the user has an easier interaction and gets what the system wants him/her to understand |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-05-13 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/b7287e6] | Implementing a better vote ranking, the old one didnt work good for small groups | The ranking is one of the essential elements behind tripsync. Interactive score changes bring joy to the users. |
+|  | Jean Leon Keim | 2026-05-13 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/e1a5016] | Make trip dashboard clearer. | Some things were misleading or didn't look good |
+
 
 
 ---
