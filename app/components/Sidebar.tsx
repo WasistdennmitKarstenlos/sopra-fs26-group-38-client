@@ -14,7 +14,8 @@ import { usePathname } from "next/navigation";
 
 const navigation = [
   { name: "Home", href: "/", icon: HomeIcon},
-  { name: "Trips", href: "/dashboard", icon: PaperAirplaneIcon},
+  { name: "My Trips", href: "/dashboard/my-trips", icon: PaperAirplaneIcon},
+  { name: "Shared Trips", href: "/dashboard/shared-trips", icon: PaperAirplaneIcon},
 ];
 
 function classNames(...classes: Array<string | false | null | undefined>) {
