@@ -170,8 +170,8 @@ TA meeting slot: May 18, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-05-17 | [624b32d](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/624b32d) | TA feedback implementation: updated dashboard loading text and split the sidebar into My Trips and Shared Trips | Implements the requested navigation and dashboard usability updates for the week |
+|  | Ajay Sathish Shenoy | 2026-05-17 | [eda7279](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/eda7279) | TA feedback implementation: removed biography from registration and prefilled the Add Event location with a default 5 km radius | Implements the remaining signup and trip-room improvements requested in feedback |
 | **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-24 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/456af09311807a1fe9c6689ffc780777bca2e707 | Persistent DB. | Implement persistent DB on Google Cloud. |
