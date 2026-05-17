@@ -1233,6 +1233,30 @@ export default function TripRoom() {
             </div>
           </header>
 
+          {/* New Destination: moved below the trip name header and matched to header width */}
+          <div className="mb-6 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-gray-200">
+            <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
+            <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
+            <div className="mt-4">
+              <input
+                type="text"
+                value={newDestinationName}
+                onChange={(event) => setNewDestinationName(event.target.value)}
+                placeholder="e.g. Rome"
+                disabled={isReadOnlyMode}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              />
+              <button
+                type="button"
+                onClick={handleAddDestination}
+                disabled={destinationLoading || isReadOnlyMode}
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Add Destination
+              </button>
+            </div>
+          </div>
+
 
           {feedback && (
             <p
@@ -1614,28 +1638,7 @@ export default function TripRoom() {
                 );
               })}
 
-              <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
-                <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
-                <div className="mt-4">
-                  <input
-                    type="text"
-                    value={newDestinationName}
-                    onChange={(event) => setNewDestinationName(event.target.value)}
-                    placeholder="e.g. Rome"
-                    disabled={isReadOnlyMode}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddDestination}
-                    disabled={destinationLoading || isReadOnlyMode}
-                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Add Destination
-                  </button>
-                </div>
-              </div>
+              {/** New Destination moved above */}
             </div>
           </section>
 
