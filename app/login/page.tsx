@@ -116,16 +116,8 @@ const Login: React.FC = () => {
             />
           </div>
 
-          {/* Remember + Forgot password */}
-          <div className="flex justify-between items-center mb-6">
-            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
-              <input type="checkbox" className="w-4 h-4 cursor-pointer accent-blue-500" />
-              Remember for 30 days
-            </label>
-            <button type="button" className="text-blue-500 text-sm font-medium bg-none border-none cursor-pointer p-0 hover:underline">
-              Forgot password
-            </button>
-          </div>
+          {/* Spacing after inputs */}
+          <div className="mb-6" />
 
           {/* Login button */}
           <button
