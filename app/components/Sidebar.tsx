@@ -6,7 +6,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   HomeIcon,
-  LinkIcon,
   PaperAirplaneIcon,
   UserCircleIcon,
   CogIcon,
@@ -15,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const navigation = [
-  { name: "Home", href: "/dashboard", icon: HomeIcon},
+  { name: "Home", href: "/", icon: HomeIcon},
   { name: "My Trips", href: "/dashboard/my-trips", icon: PaperAirplaneIcon},
   { name: "Shared Trips", href: "/dashboard/shared-trips", icon: LinkIcon},
   { name: "Settings", href: "/users/me", icon: CogIcon},
@@ -171,11 +170,11 @@ export function Sidebar({
                 <span className="sr-only">Your profile</span>
                 <div className="flex items-center gap-x-2">
                   <span aria-hidden="true">{mounted ? (username || "User") : "User"}</span>
-                  {onLogout ? (
+                    {onLogout ? (
                     <button
                       type="button"
                       onClick={onLogout}
-                      className="cursor-pointer text-sm/6 font-semibold text-gray-700 hover:text-[#1E88E5]"
+                      className="cursor-pointer text-sm/6 font-semibold text-gray-700 hover:text-[#E53E3E]"
                     >
                       (Logout)
                     </button>

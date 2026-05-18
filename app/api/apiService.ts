@@ -13,7 +13,6 @@ export class ApiService {
     this.token = token;
     this.defaultHeaders = {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
     };
   }
 
