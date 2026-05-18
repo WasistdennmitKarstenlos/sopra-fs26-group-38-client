@@ -8,6 +8,7 @@ import {
   HomeIcon,
   PaperAirplaneIcon,
   UserCircleIcon,
+  CogIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -15,7 +16,8 @@ import { usePathname } from "next/navigation";
 const navigation = [
   { name: "Home", href: "/", icon: HomeIcon},
   { name: "My Trips", href: "/dashboard/my-trips", icon: PaperAirplaneIcon},
-  { name: "Shared Trips", href: "/dashboard/shared-trips", icon: PaperAirplaneIcon},
+  { name: "Shared Trips", href: "/dashboard/shared-trips", icon: LinkIcon},
+  { name: "Settings", href: "/users/me", icon: CogIcon},
 ];
 
 function classNames(...classes: Array<string | false | null | undefined>) {
