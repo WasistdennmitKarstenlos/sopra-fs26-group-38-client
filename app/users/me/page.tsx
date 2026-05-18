@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ApiService } from "@/api/apiService";
+import { Sidebar } from "@/components/Sidebar";
+import { useApi } from "@/hooks/useApi";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 interface UserProfile {
   id: number;
@@ -11,68 +13,74 @@ interface UserProfile {
 
 const AccountSettings: React.FC = () => {
   const router = useRouter();
+  const apiService = useApi();
+
+  const { value: token, set: setToken, clear: clearToken, hasRehydrated: tokenReady } = useLocalStorage<string>("token", "");
+  const { value: userId, clear: clearUserId } = useLocalStorage<string>("userId", "");
+  const { value: storedUsername, clear: clearUsername } = useLocalStorage<string>("username", "");
+  const { value: sidebarCollapsed, set: setSidebarCollapsed } = useLocalStorage<boolean>("sidebarCollapsed", false);
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const handleClose = () => {
-    router.replace("/dashboard");
+  const handleLogout = () => {
+    clearToken();
+    clearUserId();
+    clearUsername();
+    router.push("/login");
   };
 
   useEffect(() => {
+    if (!tokenReady) {
+      return;
+    }
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    if (!userId) {
+      setError("User profile could not be loaded. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
     const loadUserProfile = async () => {
       try {
-        const readLocal = (k: string) => {
-          const raw = localStorage.getItem(k);
-          if (!raw) return null;
-          try {
-            return JSON.parse(raw);
-          } catch {
-            return raw;
-          }
-        };
+        setError(null);
+        setLoading(true);
+        const parsedUserId = Number.parseInt(userId, 10);
 
-        const storedUserId = readLocal("userId");
-        const storedToken = readLocal("token");
-        const storedUsername = readLocal("username");
-
-        if (!storedUserId || !storedToken || !storedUsername) {
-          setError("User not logged in. Please log in first.");
-          setLoading(false);
+        if (Number.isNaN(parsedUserId)) {
+          setError("User profile could not be loaded. Please log in again.");
           return;
         }
 
-        const userId = parseInt(storedUserId, 10);
-        const apiService = new ApiService(storedToken);
-
-        // Fetch current user profile from API
         try {
-          const userProfile = await apiService.getCurrentUser(userId);
+          const userProfile = await apiService.getCurrentUser(parsedUserId);
           setUser(userProfile);
         } catch {
-          // Fallback to localStorage if API fails
           setUser({
-            id: userId,
-            username: storedUsername,
+            id: parsedUserId,
+            username: storedUsername || "User",
           });
         }
-      } catch (err) {
-        setError("Failed to load user profile.");
       } finally {
         setLoading(false);
       }
     };
 
     loadUserProfile();
-  }, []);
+  }, [apiService, router, storedUsername, token, tokenReady, userId]);
 
   const validatePassword = (): boolean => {
     if (!currentPassword) {
@@ -105,34 +113,17 @@ const AccountSettings: React.FC = () => {
 
     setPasswordSubmitting(true);
     try {
-      const readLocal = (k: string) => {
-        const raw = localStorage.getItem(k);
-        if (!raw) return null;
-        try {
-          return JSON.parse(raw);
-        } catch {
-          return raw;
-        }
-      };
-
-      const token = readLocal("token");
-      if (!token) {
-        setPasswordError("No authentication token found.");
-        return;
-      }
-
-      const apiService = new ApiService(token);
       const result = await apiService.updatePassword(currentPassword, newPassword);
 
-      // If new token is provided, update it in localStorage
       if (result.token) {
-        localStorage.setItem("token", JSON.stringify(result.token));
+        setToken(result.token);
       }
 
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setSuccessMessage("Password updated successfully!");
+      setPasswordError(null);
+      setSuccessMessage("Password updated successfully.");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setPasswordError(err.message || "Failed to update password.");
@@ -144,118 +135,123 @@ const AccountSettings: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
-        <div className="rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <p className="text-lg text-gray-900">Loading account settings...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
-        <div className="rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-          <p className="text-lg text-red-600">{error}</p>
-        </div>
-      </div>
-    );
+  if (!tokenReady || !token) {
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-app-dark flex items-center justify-center p-6">
-      <div className="rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)] w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Account Settings</h1>
+    <div className={`grid h-screen overflow-hidden bg-[#f7f7f7] text-[#111] ${sidebarCollapsed ? "grid-cols-[64px_1fr]" : "grid-cols-[270px_1fr]"}`}>
+      <Sidebar onLogout={handleLogout} onCollapsedChange={setSidebarCollapsed} />
 
-        {successMessage && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-700">{successMessage}</p>
+      <main className="h-screen overflow-y-auto px-14 pt-7 pb-14">
+        <header className="mb-10 flex min-h-14 items-center justify-between">
+          <div>
+            <h1 className="m-0 text-[42px] font-bold leading-tight">Account Settings</h1>
+            <p className="m-0 mt-2 text-lg text-[#666]">Manage your profile and sign-in details.</p>
+          </div>
+        </header>
+
+        {loading ? (
+          <p className="text-sm text-[#666]">Loading account settings...</p>
+        ) : error ? (
+          <section className="max-w-3xl rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+            {error}
+          </section>
+        ) : (
+          <div className="grid max-w-5xl gap-6 lg:grid-cols-[320px_1fr]">
+            <aside className="rounded-lg border border-gray-200 bg-white p-6">
+              <p className="text-sm font-semibold uppercase text-gray-500">Profile</p>
+              <div className="mt-5 flex items-center gap-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xl font-bold text-[#2684ff]">
+                  {(user?.username || storedUsername || "U").slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-lg font-semibold text-gray-900">{user?.username || storedUsername || "User"}</p>
+                  <p className="text-sm text-gray-500">User ID {user?.id ?? userId}</p>
+                </div>
+              </div>
+            </aside>
+
+            <section className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="m-0 text-xl font-semibold text-gray-900">Change Password</h2>
+                  <p className="m-0 mt-1 text-sm text-gray-500">Update the password you use to access TripSync.</p>
+                </div>
+              </div>
+
+              {successMessage && (
+                <p className="mt-5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  {successMessage}
+                </p>
+              )}
+
+              {passwordError && (
+                <p className="mt-5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {passwordError}
+                </p>
+              )}
+
+              <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-4">
+                <div>
+                  <label htmlFor="currentPassword" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Current Password
+                  </label>
+                  <input
+                    id="currentPassword"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    disabled={passwordSubmitting}
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="newPassword" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    New Password
+                  </label>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    disabled={passwordSubmitting}
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Confirm Password
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat new password"
+                    disabled={passwordSubmitting}
+                    className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={passwordSubmitting || !currentPassword || !newPassword || !confirmPassword}
+                    className="inline-flex min-w-36 justify-center rounded-md bg-[#2684ff] px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-65"
+                  >
+                    {passwordSubmitting ? "Updating..." : "Update Password"}
+                  </button>
+                </div>
+              </form>
+            </section>
           </div>
         )}
-
-        {user && (
-          <div className="mb-8 p-4 bg-gray-50 rounded-md">
-            <p className="text-sm text-gray-700 mb-2">
-              <strong>User ID:</strong> {user.id}
-            </p>
-            <p className="text-sm text-gray-700 mb-2">
-              <strong>Current Username:</strong> {user.username}
-            </p>
-          </div>
-        )}
-
-        <div className="space-y-8">
-          {/* Change Password Section */}
-          <div className="border-t pt-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h2>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Password
-                </label>
-                <input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
-                  disabled={passwordSubmitting}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent disabled:bg-gray-100"
-                />
-              </div>
-              <div>
-                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  New Password
-                </label>
-                <input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 8 characters)"
-                  disabled={passwordSubmitting}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent disabled:bg-gray-100"
-                />
-              </div>
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                  disabled={passwordSubmitting}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1E88E5] focus:border-transparent disabled:bg-gray-100"
-                />
-                {passwordError && <p className="mt-1 text-sm text-red-600">{passwordError}</p>}
-              </div>
-              <button
-                type="submit"
-                disabled={passwordSubmitting || !currentPassword || !newPassword || !confirmPassword}
-                className="w-full px-4 py-2 bg-[#1E88E5] text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-              >
-                {passwordSubmitting ? "Updating..." : "Update Password"}
-              </button>
-              <button
-                type="button"
-                onClick={handleClose}
-                className={
-                  successMessage
-                    ? "w-full px-4 py-2 bg-[#1E88E5] text-white font-semibold rounded-md hover:bg-blue-700 transition"
-                    : "w-full px-4 py-2 border border-gray-300 text-gray-700 font-semibold rounded-md hover:bg-gray-50 transition"
-                }
-              >
-                Close
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };
