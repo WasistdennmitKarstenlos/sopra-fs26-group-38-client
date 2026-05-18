@@ -6,6 +6,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   HomeIcon,
+  LinkIcon,
   PaperAirplaneIcon,
   UserCircleIcon,
   CogIcon,
