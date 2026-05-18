@@ -176,7 +176,7 @@ export default function DashboardPage() {
           </p>
         )}
 
-        {loadingTrips && <p className="text-sm text-[#666]">Loading trips from backend...</p>}
+        {loadingTrips && <p className="text-sm text-[#666]">Loading your trips…</p>}
 
         {!loadingTrips && sharedTrips.length === 0 ? (
           <section className="flex flex-col items-center justify-center h-full">

@@ -12,7 +12,6 @@ const Register: React.FC = () => {
   const apiService = useApi();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { set: setToken } = useLocalStorage<string>("token", "");
@@ -23,7 +22,7 @@ const Register: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await apiService.post<User>("/users/register", { username, password, bio });
+      const response = await apiService.post<User>("/users/register", { username, password });
 
       if (response.token) setToken(response.token);
       if (response.id) setUserId(response.id);
@@ -91,20 +90,6 @@ const Register: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-medium mb-1.5" htmlFor="bio">
-              Biography <span className="text-gray-400 text-xs">(optional)</span>
-            </label>
-            <input
-              id="bio"
-              type="text"
-              className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white outline-none transition focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10 placeholder:text-gray-400"
-              placeholder="Enter biography"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
             />
           </div>
 
