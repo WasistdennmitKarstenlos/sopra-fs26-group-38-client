@@ -620,7 +620,7 @@ export default function TripRoom() {
       setActivityFeedback(
         results.length > 0
           ? { type: "success", text: `Found ${results.length} activities.` }
-          : { type: "success", text: "No activities matched that search." },
+          : { type: "error", text: "No activities matched that search." },
       );
     } catch (error) {
       const err = error as Error;
@@ -672,7 +672,7 @@ export default function TripRoom() {
     setActivityQuery("");
     setActivityLocation(destination?.destinationName ?? "");
     setActivityLocationCoords("");
-    setActivityRadius("5");
+    setActivityRadius("10");
     setActivityResults(null);
     setActivityFeedback(null);
   }, [destinations]);
@@ -683,7 +683,7 @@ export default function TripRoom() {
     setActivityQuery("");
     setActivityLocation("");
     setActivityLocationCoords("");
-    setActivityRadius("2");
+    setActivityRadius("10");
     setActivityResults(null);
     setActivityFeedback(null);
     setActivityLoading(false);
