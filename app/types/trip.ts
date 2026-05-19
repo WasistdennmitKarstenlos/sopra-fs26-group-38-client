@@ -9,6 +9,6 @@ export interface Trip {
   evaluationMode?: boolean;
   finalized?: boolean;
   isHost?: boolean;
-  canEnterFinalEvaluation?: boolean;
+  canFinalizeTrip?: boolean;
   imageBase64: string | null;
 }

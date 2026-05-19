@@ -170,16 +170,21 @@ TA meeting slot: May 18, 2026 (08:00-10:00)
 
 | **Student (GitHub)** | **Student Name** | **Date** | **Link to Commit** | **Description** | **Relevance** |
 | -------------------- | ---------------- | -------- | ------------------ | --------------- | ------------- |
-| **[@sajayshenoy]** | Ajay Sathish Shenoy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Ajay Sathish Shenoy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@itsmeroya]** | Arjun Roy | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Arjun Roy | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@sajayshenoy]** | Ajay Sathish Shenoy | 2026-05-17 | [624b32d](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/624b32d) | TA feedback implementation: updated dashboard loading text and split the sidebar into My Trips and Shared Trips | Implements the requested navigation and dashboard usability updates for the week |
+|  | Ajay Sathish Shenoy | 2026-05-17 | [eda7279](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/eda7279) | TA feedback implementation: removed biography from registration and prefilled the Add Event location with a default 5 km radius | Implements the remaining signup and trip-room improvements requested in feedback |
+| **[@itsmeroya]** | Arjun Roy | 2026-05-15 | [5a70ea807f62eda751044bba01d08d84c1757891](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/137/changes/5a70ea807f62eda751044bba01d08d84c1757891) | Frontend changes to limit profile updates to only password | Allows user to reset password |
+|  | Arjun Roy | 2026-05-16 | [df33cb24df9e27946d4fd183566d1f72bab4ea02](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/273/changes/df33cb24df9e27946d4fd183566d1f72bab4ea02) | Backend changes to limit profile updates to only password | Allows user to reset password |
+|  | Arjun Roy | 2026-05-16 | [7a84cc5e6bbf5e8ec75ad85d721cb15666960797](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/pull/282/changes/7a84cc5e6bbf5e8ec75ad85d721cb15666960797) | Backend added missing ActivityPersistenceIntegrationTest as per TA feedback | Integration test verifies that an Activity can be persisted and then retrieved via service/repository layers, checking trip/destination linkage and mapped fields |
+|  | Arjun Roy | 2026-05-16 | [0e4c2824f63dcbd6a9521635625fb22113f2b8d2](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/144/changes/0e4c2824f63dcbd6a9521635625fb22113f2b8d2) | Move New Destination form to top below Trip Header | Frontend: New destination form is now always visible as opposed to being pushed out of window view with the addition of multiple destinations |
+|  | Arjun Roy | 2026-05-17 | [3d65d58e8114fd5bfacbca44706e649819e41c7c](https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/147/changes/3d65d58e8114fd5bfacbca44706e649819e41c7c) | Frontend: Remove ForgotPassword and RememberPasswordfor30days buttons on login page | Buttons with no realized functionality |
 | **[@3xpr]** | Joel Marc Dickey | 2026-04-24 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/456af09311807a1fe9c6689ffc780777bca2e707 | Persistent DB. | Implement persistent DB on Google Cloud. |
-|             | Joel Marc Dickey | 2026-04-28 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/7af6a8551b6241f6da7bb4e55d6c1d99829a7c9e, https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9c1e2a443eb495609960d508b36607e36da7acf9 | Realtime Updates on Google Cloud | App Engine requires special configuration to run SSE. We need SSE to allow for realtime updates in the trip room. |
-| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Lennart Robin Zirn | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@JeanKeim1]** | Jean Leon Keim | [date] | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|  | Jean Leon Keim | [date] | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+|             | Joel Marc Dickey | 2026-04-28 |  https://github.com/WasistdennmitKarstenlos§opra-fs26-group-38-client/commit/7af6a8551b6241f6da7bb4e55d6c1d99829a7c9e, https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9c1e2a443eb495609960d508b36607e36da7acf9 | Realtime Updates on Google Cloud | App Engine requires special configuration to run SSE. We need SSE to allow for realtime updates in the trip room. |
+|             | Joel Marc Dickey | 2026-05-12 |  https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/d387e8827893dc970e91bef66d225b0f24e979b7 | Bugfix for HikariPool Connections | Hikari connections weren't correctly managed in connection with SSE which would lead to no DB connections being available. |
+| **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | 2026-05-17 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/145/changes/3917b8b5d6927046b7b230829b8b534ff54bca4b | Added manual tests for the frontend | So that there is as less bugs as possible |
+|             | Lennart Robin Zirn | 2026-05-17 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/pull/145/changes/f59144fd58ec504f4b4e119ed41e44eaeca78223 | Made the error feedback red instead of green (TA Feedback) | So that the user has an easier interaction and gets what the system wants him/her to understand |
+| **[@JeanKeim1]** | Jean Leon Keim | 2026-05-13 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-server/commit/b7287e6] | Implementing a better vote ranking, the old one didnt work good for small groups | The ranking is one of the essential elements behind tripsync. Interactive score changes bring joy to the users. |
+|  | Jean Leon Keim | 2026-05-13 | [https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/e1a5016] | Make trip dashboard clearer. | Some things were misleading or didn't look good |
+
 
 
 ---
@@ -194,8 +199,8 @@ TA meeting slot: None
 |  | Ajay Sathish Shenoy |  |  |  | |
 | **[@itsmeroya]** | Arjun Roy | |  |  |  |
 |  | Arjun Roy |  |  |  ||
-| **[@3xpr]** | Joel Marc Dickey |  | | | |
-|  | Joel Marc Dickey |  |  |  |  |
+| **[@3xpr]** | Joel Marc Dickey | 2026-05-12 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/9399705ab7f3654644b64b49df3e0ea884937511  | Implement CORS Policy | CORS is security relevant as it prevents unauthorized cross-site access. |
+|             | Joel Marc Dickey | 2026-05-14 | https://github.com/WasistdennmitKarstenlos/sopra-fs26-group-38-client/commit/ba9632c64b79e2673d1c3cc90b2c3e392d5b05f0 | Google Cloud Run Deployment | App Engine Flex Costs are skyrocketing due to scaling to zero being impossible. Moving to cloud run fixes this while preserving SSE funcitonality. |   
 | **[@WasistdennmitKarstenlos]** | Lennart Robin Zirn | |  |  | |
 |  | Lennart Robin Zirn |  |  |  |  |
 | **[@JeanKeim1]** | Jean Leon Keim |  |  | |  |

@@ -253,10 +253,10 @@ export default function TripRoom() {
   }, [sortedDestinations, trip]);
 
   const destinationExists = sortedDestinations.length > 0;
-  const canStartFinalEvaluation = Boolean(
+  const canStartFinalizeTrip = Boolean(
     trip && isHost && destinationExists && !isEvaluationMode && !isFinalized,
   );
-  const canShowFinalEvaluationButton = Boolean(trip?.canEnterFinalEvaluation || canStartFinalEvaluation);
+  const canShowFinalizeTripButton = Boolean(trip?.canFinalizeTrip || canStartFinalizeTrip);
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -666,15 +666,16 @@ export default function TripRoom() {
   }, [destinations, fetchActivitiesForDestination, token]);
 
   const openActivityModal = useCallback((destinationId: number) => {
+    const destination = destinations.find(d => d.id === destinationId);
     setActivityModalDestinationId(destinationId);
     setActivityModalOpen(true);
     setActivityQuery("");
-    setActivityLocation("");
+    setActivityLocation(destination?.destinationName ?? "");
     setActivityLocationCoords("");
     setActivityRadius("10");
     setActivityResults(null);
     setActivityFeedback(null);
-  }, []);
+  }, [destinations]);
 
   const closeActivityModal = useCallback(() => {
     setActivityModalOpen(false);
@@ -726,12 +727,12 @@ export default function TripRoom() {
     [activityModalDestinationId, apiService, getActivitiesEndpoint, isReadOnlyMode, token],
   );
 
-  const handleStartFinalEvaluation = useCallback(async () => {
-    if (!trip?.id || !canStartFinalEvaluation || !winnerDestination) return;
+  const handleFinalizeTrip = useCallback(async () => {
+    if (!trip?.id || !canStartFinalizeTrip || !winnerDestination) return;
 
     try {
-      const updatedTrip = await apiService.post<Trip>(`/trips/${trip.id}/final-evaluation`);
-      console.log("Final evaluation response:", updatedTrip);
+      const updatedTrip = await apiService.post<Trip>(`/trips/${trip.id}/finalize-trip`);
+      console.log("Finalize trip response:", updatedTrip);
       console.log("Trip status:", updatedTrip.status, "finalized:", updatedTrip.finalized);
       const finalizedTrip = await apiService.finalizeTrip(trip.id, winnerDestination.id);
       setTrip(finalizedTrip as Trip);
@@ -739,18 +740,18 @@ export default function TripRoom() {
       setActivityModalDestinationId(null);
     } catch (error) {
       const err = error as Error;
-      console.error("Final evaluation error:", err);
-      setFeedback({ type: "error", text: err.message || "Could not start final evaluation." });
+      console.error("Finalize trip error:", err);
+      setFeedback({ type: "error", text: err.message || "Could not finalize trip." });
     }
-  }, [apiService, canStartFinalEvaluation, trip?.id, winnerDestination]);
+  }, [apiService, canStartFinalizeTrip, trip?.id, winnerDestination]);
 
   // Confirmation dialog state for finalization
   const [confirmFinalizeOpen, setConfirmFinalizeOpen] = useState(false);
 
   const confirmFinalize = useCallback(async () => {
     setConfirmFinalizeOpen(false);
-    await handleStartFinalEvaluation();
-  }, [handleStartFinalEvaluation]);
+    await handleFinalizeTrip();
+  }, [handleFinalizeTrip]);
 
   const handleDownloadReport = useCallback(() => {
     if (!finalReport) return;
@@ -1149,34 +1150,8 @@ export default function TripRoom() {
 
                 <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-700">
                   <div className="inline-flex items-center gap-2">
-                    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-gray-500" aria-hidden="true">
-                      <path
-                        d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M6 11c1.66 0 3-1.34 3-3S7.66 5 6 5 3 6.34 3 8s1.34 3 3 3Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M6 13c-2.21 0-4 1.79-4 4v2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M16 13c-2.21 0-4 1.79-4 4v2"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M10 11c1.66 0 3-1.34 3-3S11.66 5 10 5 7 6.34 7 8s1.34 3 3 3Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 flex-shrink-0 text-gray-500" aria-hidden="true">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                     <span className="text-gray-500">Participants</span>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1199,22 +1174,22 @@ export default function TripRoom() {
                 </div>
               </div>
 
-              {canShowFinalEvaluationButton && (
+              {canShowFinalizeTripButton && (
                 <>
                   <button
                     type="button"
                     onClick={() => setConfirmFinalizeOpen(true)}
-                    disabled={!canStartFinalEvaluation}
+                    disabled={!canStartFinalizeTrip}
                     className="inline-flex h-10 items-center justify-center rounded-lg bg-[#2684ff] px-4 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Final Evaluation
+                    Finalize Trip
                   </button>
 
                   <Dialog open={confirmFinalizeOpen} onClose={() => setConfirmFinalizeOpen(false)} className="relative z-50">
                     <DialogBackdrop className="fixed inset-0 bg-black/30" />
                     <div className="fixed inset-0 flex items-center justify-center p-4">
                       <DialogPanel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl ring-1 ring-gray-200">
-                        <DialogTitle className="text-lg font-semibold text-gray-900">Confirm Final Evaluation</DialogTitle>
+                        <DialogTitle className="text-lg font-semibold text-gray-900">Confirm Finalize Trip</DialogTitle>
                         <p className="mt-2 text-sm text-gray-600">Finalizing the trip will make it read-only and cannot be undone. Are you sure you want to proceed?</p>
                         <div className="mt-6 flex justify-end gap-3">
                           <button
@@ -1238,7 +1213,13 @@ export default function TripRoom() {
                 </>
               )}
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 flex-shrink-0 text-gray-500" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-13c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z" />
+                </svg>
+                <span className="text-gray-500">Destinations</span>
+              </div>
               {destinationLoading && (
                 <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">Loading destinations...</span>
               )}
@@ -1246,24 +1227,36 @@ export default function TripRoom() {
                 <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600">No destinations yet.</span>
               )}
               {destinations.map((destination) => (
-                <div key={destination.id} className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDestinationId(destination.id)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                      selectedDestinationId === destination.id
-                        ? "border-blue-300 bg-blue-50 text-blue-700"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {destination.destinationName}
-                  </button>
-
-                  {/* selection button only - edit/delete moved into cards */}
-                </div>
+                <span key={destination.id} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-700">
+                  {destination.destinationName}
+                </span>
               ))}
             </div>
           </header>
+
+          {/* New Destination: moved below the trip name header and matched to header width */}
+          <div className="mb-6 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-gray-200">
+            <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
+            <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
+            <div className="mt-4">
+              <input
+                type="text"
+                value={newDestinationName}
+                onChange={(event) => setNewDestinationName(event.target.value)}
+                placeholder="e.g. Rome"
+                disabled={isReadOnlyMode}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              />
+              <button
+                type="button"
+                onClick={handleAddDestination}
+                disabled={destinationLoading || isReadOnlyMode}
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Add Destination
+              </button>
+            </div>
+          </div>
 
 
           {feedback && (
@@ -1282,7 +1275,7 @@ export default function TripRoom() {
             <section className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 p-6 shadow-sm ring-1 ring-amber-200">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Final Evaluation</h2>
+                  <h2 className="text-xl font-bold text-gray-900">Finalize Trip</h2>
                   <p className="mt-1 text-sm text-gray-600">
                     Selected winner: <span className="font-semibold text-amber-800">{winnerDestination.destinationName}</span>
                   </p>
@@ -1646,28 +1639,7 @@ export default function TripRoom() {
                 );
               })}
 
-              <div className="w-85 shrink-0 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                <h2 className="text-3xl font-bold text-gray-900">New Destination</h2>
-                <p className="mt-2 text-sm text-gray-600">Propose a new Destination!</p>
-                <div className="mt-4">
-                  <input
-                    type="text"
-                    value={newDestinationName}
-                    onChange={(event) => setNewDestinationName(event.target.value)}
-                    placeholder="e.g. Rome"
-                    disabled={isReadOnlyMode}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddDestination}
-                    disabled={destinationLoading || isReadOnlyMode}
-                    className="mt-4 inline-flex items-center justify-center rounded-lg bg-[#2684ff] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1f6fe0] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Add Destination
-                  </button>
-                </div>
-              </div>
+              {/** New Destination moved above */}
             </div>
           </section>
 
@@ -1704,7 +1676,7 @@ export default function TripRoom() {
                         step="0.1"
                         value={activityRadius}
                         onChange={(event) => setActivityRadius(event.target.value)}
-                        placeholder="2"
+                        placeholder="5"
                         className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                       />
                       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">km</span>
@@ -1923,7 +1895,7 @@ export default function TripRoom() {
                     <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Download JSON
+                    Download
                   </button>
                   <button
                     type="button"
